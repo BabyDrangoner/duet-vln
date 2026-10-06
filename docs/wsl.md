@@ -76,7 +76,9 @@ source outputs/runtime-wsl/activate.sh
 
 ## 备份、续训与断线
 
-首先明确创建持久目录：
+`configs/pipeline_wsl.json` 是训练模板：先采集 `train_fit` 缓存，将 `cache` 改为实际缓存目录，并为新实验设置唯一 `run_id`。下面的八条指令冒烟给出缓存采集示例；该小缓存只用于工程验收，不能作为正式研究训练集。
+
+配置好缓存后，明确创建持久目录并启动：
 
 ```bash
 mkdir -p "$HOME/vln-backups"

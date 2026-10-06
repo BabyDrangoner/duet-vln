@@ -84,7 +84,7 @@ SPL 差值可分解为互不重叠的结果类别；以下每项都是对全体�
 
 ## 5. 复核与成本
 
-[独立分析脚本](../outputs/study-20261005/audit_full_navigation.py) 不执行导航、不修改 checkpoint 或评测账本。报告级审计已检查全部指令、冻结 head/config/code 身份、在线前缀、终点与轨迹一致性，重算全部 11 项汇总及七个场景 bootstrap 对比。另用 `compare_metrics.py` 重算七组 SR/SPL 对比，对应结果逐值一致。
+[独立分析脚本](../scripts/frozen/audit_full_navigation.py) 不执行导航、不修改 checkpoint 或评测账本。报告级审计已检查全部指令、冻结 head/config/code 身份、在线前缀、终点与轨迹一致性，重算全部 11 项汇总及七个场景 bootstrap 对比。另用 `compare_metrics.py` 重算七组 SR/SPL 对比，对应结果逐值一致。
 
 [远端图审计](../outputs/study-20261005/e1-full-val-unseen-independent-graph-audit.json) 也已通过：核对冻结标注 SHA 和完整 connectivity 文件清单后，用独立的 Dijkstra、轨迹计分和 DTW 实现重算五组共 **11,745 条轨迹、140,940 项逐条指标**。SR、导航误差和 DTW 逐条完全一致；全部指标最大绝对数值差为 `2.8422e-14`，来自浮点求和或指数函数末位差异。
 

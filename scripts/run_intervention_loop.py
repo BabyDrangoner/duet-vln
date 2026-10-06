@@ -254,7 +254,7 @@ class Loop:
         for folder in ("src", "scripts"):
             execution.extend(p for p in (self.root / folder).rglob("*.py") if "__pycache__" not in p.parts)
         execution.extend(self.root / name for name in ("configs/r2r.json", "configs/research_study.json",
-            "outputs/study-20261005/audit_full_navigation.py"))
+            "scripts/frozen/audit_full_navigation.py"))
         execution.append(self.master_path)
         third_party = self.root / "third_party/VLN-DUET"
         execution.extend(p for p in third_party.rglob("*.py") if not set(p.parts) & {"__pycache__", ".git", "build"})

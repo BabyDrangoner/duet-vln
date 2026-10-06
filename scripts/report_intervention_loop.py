@@ -20,7 +20,7 @@ import re
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
-HELPER = ROOT / "outputs/study-20261005/audit_full_navigation.py"
+HELPER = ROOT / "scripts/frozen/audit_full_navigation.py"
 HELPER_SHA256 = "ad652843e77526b1a72a66e4a36cc9175523050b7714ed21cf76df0e9083d96d"
 BASELINE_SHA256 = "32e4b21422a86c2b8a7e81eb1b423b903ac19cf25972d450c003bdd33d57cd61"
 ANNOTATION_SHA256 = "29110ed14c22cba6ba12bfc2e5f4d3bfdc27a253ff47f55a7a06ab97c9b71d13"
