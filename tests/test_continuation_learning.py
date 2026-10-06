@@ -221,9 +221,18 @@ def padded_inputs(records, *, candidates=None, tokens=None, fill=float("nan")):
 
 @pytest.mark.parametrize("mode", ("relative", "absolute", "teacher"))
 @pytest.mark.parametrize("history", (True, False))
-@pytest.mark.parametrize("device", ("cpu", pytest.param("cuda", marks=pytest.mark.skipif(
-    not torch.cuda.is_available(), reason="CUDA acceptance runs on the WSL GPU"))))
-def test_batch_scores_losses_and_gradients_match_separate_records(mode, history, device):
+@pytest.mark.parametrize("device,cudnn_tf32", (("cpu", False), *[
+    pytest.param("cuda", enabled, marks=pytest.mark.skipif(
+        not torch.cuda.is_available(), reason="CUDA acceptance runs on the WSL GPU"))
+    for enabled in (False, True)]))
+def test_batch_scores_losses_and_gradients_match_separate_records(mode, history, device, cudnn_tf32, monkeypatch):
+    # Check the exact FP32 equations tightly, and separately exercise the
+    # production cuDNN TF32 default. Packed and dense GRUs choose different
+    # kernels; their reduced-precision accumulation has a measured wider bound.
+    monkeypatch.setattr(torch.backends.cuda.matmul, "allow_tf32", False)
+    monkeypatch.setattr(torch.backends.cudnn, "allow_tf32", cudnn_tf32)
+    score_tolerance = dict(rtol=2e-4, atol=2e-5) if cudnn_tf32 else dict(rtol=2e-5, atol=2e-6)
+    gradient_tolerance = dict(rtol=2e-4, atol=1e-4) if cudnn_tf32 else dict(rtol=1e-4, atol=5e-6)
     torch.manual_seed(61)
     batch_model = ContinuationComparator(7, 12, mode=mode, history=history).to(device)
     nonzero_output(batch_model)
@@ -242,12 +251,12 @@ def test_batch_scores_losses_and_gradients_match_separate_records(mode, history,
         candidates = len(row["features"])
         assert mask[index].tolist() == [True] * candidates + [False] * (4 - candidates)
         torch.testing.assert_close(scores[index, :candidates], single_model.score_record(row),
-                                   rtol=2e-5, atol=2e-6)
+                                   **score_tolerance)
     weights = dict(sr_weight=2., spl_weight=.75, rescue_weight=3., harm_weight=4.)
     actual = learning.batch_record_losses(batch_model, records, **weights)
     expected = torch.stack([record_loss(single_model, row, **weights) for row in records])
     assert actual.shape == (len(records),)
-    torch.testing.assert_close(actual, expected, rtol=2e-5, atol=2e-6)
+    torch.testing.assert_close(actual, expected, **score_tolerance)
     record_weights = actual.new_tensor([.5, 2., 1.25, 3.])
     (actual * record_weights).sum().backward()
     (expected * record_weights).sum().backward()
@@ -255,7 +264,7 @@ def test_batch_scores_losses_and_gradients_match_separate_records(mode, history,
         expected_parameter = dict(single_model.named_parameters())[name]
         assert actual_parameter.grad is not None and expected_parameter.grad is not None, name
         torch.testing.assert_close(actual_parameter.grad, expected_parameter.grad,
-                                   rtol=1e-4, atol=5e-6, msg=lambda message: name + ": " + message)
+                                   **gradient_tolerance, msg=lambda message: name + ": " + message)
     assert all(row[name].grad is None for row in records
                for name in ("features", "history_features", "progress", "utilities"))
 
