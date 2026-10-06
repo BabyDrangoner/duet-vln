@@ -259,7 +259,9 @@ navigation run. References with no eligible states remain in the denominator.
                     else:
                         scores = model.score_record(record)
                         if score_cache is not None:
-                            score_cache[key] = scores.detach().cpu()
+                            # All thresholds must use the same device as online
+                            # gating; CPU/GPU softmax can differ in the last bit.
+                            score_cache[key] = scores.detach()
                     index = choose_action(scores, model.mode, sr_threshold, spl_threshold)
                     if index != 0:
                         # Access to labels happens only after the action is fixed.

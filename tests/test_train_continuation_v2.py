@@ -304,6 +304,46 @@ def test_cached_evaluation_reads_replay_metrics_even_when_training_targets_are_u
     assert report["eligible"] is True
 
 
+def test_threshold_score_cache_detaches_without_device_transfer_or_repeated_forward(tmp_path, monkeypatch):
+    data = make_dataset(tmp_path, split="train_dev", instructions=1)
+    for row in data.records:
+        row["features"].requires_grad_(True)
+
+    class CountingTeacher(FeatureScores):
+        def __init__(self):
+            super().__init__(mode="teacher")
+            self.forward_counts = defaultdict(int)
+
+        def forward(self, features, history_features, progress):
+            self.forward_counts[features.data_ptr()] += 1
+            return super().forward(features, history_features, progress)
+
+    def forbidden_cpu(self, *args, **kwargs):
+        raise AssertionError("cached scores must stay on the online policy device")
+
+    model, cache, previous = CountingTeacher(), {}, {}
+    # This detects the old detach().cpu() path even on a CPU-only test host.
+    with monkeypatch.context() as patch:
+        patch.setattr(torch.Tensor, "cpu", forbidden_cpu)
+        for threshold in (0., .025, .05, .1, .4):
+            training.evaluate_cached(model, data, threshold, 0., score_cache=cache)
+            for key, scores in cache.items():
+                bundle_index, record_index = key
+                source = data.bundles[bundle_index]["records"][record_index]["features"]
+                assert scores.requires_grad is False
+                assert scores.device == source.device and scores.dtype == source.dtype
+                assert torch.equal(scores, source[:, :2])
+                if key in previous:
+                    cached_object, exact_values = previous[key]
+                    assert scores is cached_object
+                    assert torch.equal(scores, exact_values)
+                else:
+                    previous[key] = (scores, scores.clone())
+    assert len(cache) == len(data.records)
+    assert len(model.calls) == len(data.records)
+    assert dict(model.forward_counts) == {row["features"].data_ptr(): 1 for row in data.records}
+
+
 @pytest.mark.parametrize("cold", (False, True))
 @pytest.mark.parametrize("pause_step", (3, 8))
 def test_full_training_state_is_identical_after_hot_or_cold_strict_resume(tmp_path, cold, pause_step):
