@@ -426,6 +426,7 @@ def main(argv=None):
         if any(abs(natural['summary'][key]-raw_report['summary'][key]) > 1e-8 for key in natural['summary']):
             raise ValueError('independent per-episode means differ from DUET natural summary')
         report = {'schema': REPORT_SCHEMA, 'metadata': dict(raw_report['metadata'],
+            torch_version=str(torch.__version__), cuda_version=torch.version.cuda,
             mode='continuation_v2_identity' if args.identity else 'continuation_v2_navigation',
             subset=panel is not None, head_sha256=head_sha, head_metadata=head_metadata,
             dataset_manifest_sha256=object_manifest_sha, selection=selection,

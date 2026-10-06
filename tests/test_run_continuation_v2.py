@@ -316,6 +316,8 @@ def test_synthetic_driver_full_identity_and_fixed_stress_panel(tmp_path, monkeyp
     assert module.main(command) == 0
     report = json.loads(destination.read_text())
     assert report['metadata']['identity_checked_rollouts'] == 4
+    assert report['metadata']['torch_version'] == str(torch.__version__)
+    assert report['metadata']['cuda_version'] == torch.version.cuda
     assert report['metadata']['zero_comparator_full_trajectory_identity'] is True
     assert set(report['conditions']) == set(module.SCHEDULES)
     assert all(value['intervention_count'] == 0 for value in report['conditions'].values())
