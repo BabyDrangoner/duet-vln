@@ -38,6 +38,8 @@ def main(argv=None):
     p.add_argument('--smoke', action='store_true')
     p.add_argument('--deadline-seconds', type=float, default=36000)
     p.add_argument('--stop-after-bundles', type=int)
+    p.add_argument('--shard-count', type=int, default=1)
+    p.add_argument('--shard-index', type=int, default=0)
     args = p.parse_args(argv)
     args.output_dir, args.backup_dir = args.output_dir.resolve(), args.backup_dir.expanduser().resolve()
     validate_separate_roots(args.output_dir, args.backup_dir)
@@ -46,6 +48,8 @@ def main(argv=None):
         raise ValueError('wrong frozen data experiment')
     count = spec['smoke_instructions_per_split'] if args.smoke else spec['instructions'][args.split]
     seed = spec['seed']
+    if not 1 <= args.shard_count <= 4 or not 0 <= args.shard_index < args.shard_count:
+        raise ValueError('invalid deterministic shard')
     cfg = resolve_config(args.config, ROOT)
     if (cfg['model']['batch_size'] != 1 or cfg['model']['max_action_len'] != 15
             or cfg['model']['fusion'] != 'dynamic' or args.deadline_seconds <= 0):
@@ -92,9 +96,13 @@ def main(argv=None):
                                 'scene_stratified', count, seed)
         if len(chosen) != count:
             raise ValueError('selection count differs')
+        full_ids = sorted(r['instr_id'] for r in chosen)
+        chosen = sorted(chosen, key=lambda r:r['instr_id'])[args.shard_index::args.shard_count]
         selection = {'split': split, 'instr_ids': sorted(r['instr_id'] for r in chosen),
             'scan_ids': sorted({r['scan'] for r in chosen}), 'conditions': spec['conditions'],
-            'count': count, 'smoke': args.smoke, 'seed': seed, 'selection': 'scene_stratified'}
+            'count': len(chosen), 'full_instr_ids': full_ids,
+            'shard_index': args.shard_index, 'shard_count': args.shard_count,
+            'smoke': args.smoke, 'seed': seed, 'selection': 'scene_stratified'}
         store = ProbeTaskStore(args.output_dir/'tasks', args.backup_dir/'tasks',
             {'schema': SCHEMA, 'provenance': provenance, 'selection': selection}, check_backup=check)
         return chosen
@@ -170,7 +178,7 @@ def main(argv=None):
                             'branches': len(bundle['branches']), 'anchors': sum(b['is_anchor'] for b in bundle['branches']),
                             'perturbations_applied': len(ref['perturbations'])})
                         if len(pointers) % 8 == 0:
-                            progress = {'complete': False, 'bundles': len(pointers), 'expected_bundles': count*len(SCHEDULES),
+                            progress = {'complete': False, 'bundles': len(pointers), 'expected_bundles': len(original_data)*len(SCHEDULES),
                                 'new_bundles': new_bundles, 'seconds': time.monotonic()-start,
                                 'rescuable_unique_instructions': len({r['instr_id'] for r in descriptive if r['rescuable']})}
                             atomic_json(args.output_dir/'progress.json', progress)
