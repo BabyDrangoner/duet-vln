@@ -1,0 +1,110 @@
+{
+  "schema": "e2_endpoint_failure_diagnostic_v1",
+  "access_id": "S0002",
+  "split": "val_unseen",
+  "seed": 0,
+  "expected_episodes": 2349,
+  "status": "specified_before_new_per_instruction_analysis",
+  "inputs": {
+    "baseline": {
+      "path": "outputs/study-20261003/baseline-val-unseen.json",
+      "sha256": "32e4b21422a86c2b8a7e81eb1b423b903ac19cf25972d450c003bdd33d57cd61"
+    },
+    "C1": {
+      "path": "outputs/study-20261004/V0002-e1-C1-seed0-final-val-unseen.json",
+      "sha256": "aa8b34c66bf3e2b85e560065d85b3c95f7723c719427ffaed1e7fa545c9c349e"
+    },
+    "C2": {
+      "path": "outputs/study-20261004/V0003-e1-C2-seed0-final-val-unseen.json",
+      "sha256": "7cb75efc90b0923ea2644d5e8837105513611262358dd832ba5cbff00d3e6d90"
+    },
+    "C3": {
+      "path": "outputs/study-20261004/V0004-e1-C3-seed0-final-val-unseen.json",
+      "sha256": "7ed15bd143a75eca01580937776ec0584eb733173fc1e64d2dcc7c5e3b394b4b"
+    },
+    "M": {
+      "path": "outputs/study-20261004/V0005-e1-M-seed0-final-val-unseen.json",
+      "sha256": "ef963b836abaf5b2c7c3ed299ce74e78935d920c643f883a95d3bf645b5521ee"
+    },
+    "S1": {
+      "path": "outputs/study-20261003/stop-trace-val-unseen/stopping-analysis.json",
+      "sha256": "915770ad07838bb622c5502bef33f41ba622a57732c4be63c9c998c31fee8faf"
+    },
+    "S1_collection": {
+      "path": "outputs/study-20261003/stop-trace-val-unseen/COLLECTION.json",
+      "sha256": "96a2872f3e6095a670de4d8686db7a7a3c19c7d1d00e78aa278fc7821e400543"
+    },
+    "train_controls": {
+      "path": "outputs/study-20261003/recovered-e1-seed0/endpoint-controls-full-v2-train-fit/manifest.json",
+      "sha256": "e76a757006a53ad39a2d2546e5f2bd7dd5052143a52ff95aa6f1f6e11c8c8a46"
+    },
+    "dev_controls": {
+      "path": "outputs/study-20261003/recovered-e1-seed0/endpoint-controls-full-v2-train-dev/manifest.json",
+      "sha256": "a5777a3449ad1c51b0657abb5f82991b2d6a19ccea5c4d14ac6def4fcc0ddc2f"
+    },
+    "train_pairs": {
+      "path": "outputs/study-20261003/recovered-e1-seed0/endpoint-pair-full-train-fit/manifest.json",
+      "sha256": "1a98ebfad140a3a03eee4b48c9ed6c947858211c8ffa4e41be4aa9a907a12b34"
+    },
+    "dev_pairs": {
+      "path": "outputs/study-20261003/recovered-e1-seed0/endpoint-pair-full-train-dev/manifest.json",
+      "sha256": "2b326287ff1458c9e0ec21592f997302a72cde1d0c33fb3fffc8c962d20380bc"
+    }
+  },
+  "arms": [
+    "C1",
+    "C2",
+    "C3",
+    "M"
+  ],
+  "questions": [
+    "Decompose full-split SR/SPL changes into rescue, harm, both_success_changed, both_success_unchanged, both_failure.",
+    "Measure observed historical success coverage and rescue fraction; distinguish actual decision nodes from standard path oracle.",
+    "Stratify all instructions by baseline success, exact termination flag combinations, full decision-history size, baseline endpoint age, current-ending success, baseline STOP confidence, and scene.",
+    "Describe selected endpoint age, legal move count, baseline STOP probability and return costs within each fixed outcome category.",
+    "Compare M versus C3 endpoint outcomes on the identical frozen histories.",
+    "Report training manifest counts for natural, forced-control and paired data without claiming distribution causality or reading feature tensors."
+  ],
+  "bins": {
+    "history_states": [
+      5,
+      10,
+      15
+    ],
+    "endpoint_age_steps": [
+      0,
+      3,
+      7,
+      14
+    ],
+    "legal_move_count": [
+      0,
+      4,
+      9,
+      1000000000
+    ],
+    "baseline_stop_probability": [
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ]
+  },
+  "strata": [
+    "baseline_success",
+    "terminal_success",
+    "termination_combination",
+    "history_states",
+    "baseline_endpoint_age_steps",
+    "baseline_stop_probability",
+    "scan_id"
+  ],
+  "scope": "Read-only descriptive full-split analysis. No new navigation, model fitting, score re-ranking, threshold search, selected-example search, or checkpoint selection.",
+  "missing_evidence": [
+    "E1 reports omit head logits, so head score margins, calibration and confidence cannot be recovered.",
+    "S1 stores decision statistics but no token embeddings; feature comparability across time is an architectural hypothesis, not an empirical finding.",
+    "S1 minimum-return oracle describes opportunities only; no oracle method score is reported.",
+    "Training manifests contain aggregate rollout/state counts but no comparable per-state confidence or success distribution."
+  ],
+  "output": "outputs/study-20261006-e2/diagnosis.json"
+}

@@ -1,0 +1,82 @@
+{
+  "actual_adjacent_transitions_checked": 372,
+  "anchor_full_path_checks": 11,
+  "artifact_identity": {
+    "connectivity": {
+      "files": 90,
+      "inventory_sha256": "ef4a536632ad2d76b94c5b7ee41fffcc470a33844f7e7a9ca048739cdaa7d6af",
+      "used_scan_sha256": {
+        "VLzqgDo317F": "e9201eac9463c8889667079f0a61febab3a69f3d06bc545c5a9eb0e3b7db214e",
+        "pRbA3pwrgk9": "76a52705a25cbd615f5f986848491082722f1fde0f087d67b760b40b05106c97"
+      }
+    },
+    "identity_sha256": "8884294bb307c762ab5bf19b98e474ba6c4a3427c1bff9ed337a61d10864ec3b",
+    "manifest_sha256": "ec63020c22020a5ef425ce2cd83cbaa0a6ce0a9dcfb8ce4e806b6efea0951d55",
+    "probe_summary_sha256": "7d26cfa9384daac21fa25212c917bddffa7f8fb1ebce1c9874ac9c39f655c79e",
+    "training_annotation_sha256": "8ffdfd5a5c5efeef56af7883ebac28d854a64161f1d0a3d0e52ba75086b726b8"
+  },
+  "audit_source_sha256": "60ddb2cddac2c29a9b07c94a3a2660a31f057c31c68a4a45320215168063b77a",
+  "branch_rollouts_checked": 40,
+  "checks": {
+    "all_adjacent_edges_physically_legal": true,
+    "anchor_entire_path_and_metrics_match": true,
+    "branch_shared_prefix_and_target_action_match": true,
+    "complete_path_including_returns_charged": true,
+    "exact_task_inventory_and_sha256": true,
+    "fixed_training_scene_partition_and_instruction_selection": true,
+    "full_executed_path_oracle_success_and_error_recomputed_from_raw_graph": true,
+    "original_15_decision_budget": true,
+    "recorded_original_stop_evidence_and_historical_endpoint_consistent": true,
+    "reference_actions_match_stored_raw_logits_and_fixed_perturbation": true,
+    "sr_spl_ne_length_recomputed_from_raw_graph": true
+  },
+  "instructions": 2,
+  "max_absolute_metric_errors": {
+    "action_steps": 0.0,
+    "nav_error": 1.7763568394002505e-15,
+    "oracle_error": 8.881784197001252e-16,
+    "oracle_success": 0.0,
+    "spl": 1.1102230246251565e-16,
+    "spl_gain": 1.1102230246251565e-16,
+    "success": 0.0,
+    "trajectory_lengths": 3.552713678800501e-15,
+    "trajectory_steps": 0.0
+  },
+  "maximum_decision_count": 11,
+  "metric_fields_recomputed": [
+    "success",
+    "spl",
+    "nav_error",
+    "trajectory_lengths",
+    "oracle_success",
+    "oracle_error"
+  ],
+  "metric_tolerance": {
+    "absolute": 2e-10,
+    "relative": 2e-12
+  },
+  "metric_values_recomputed": 264,
+  "probe_scope": "engineering_smoke",
+  "recorded_utc": "2026-10-06T07:43:16.731816+00:00",
+  "reference_rollouts_checked": 4,
+  "resources": {
+    "cpu_seconds": 0.35611406400039414,
+    "gpu_seconds": 0,
+    "new_navigation_episodes": 0,
+    "official_validation_reads": 0
+  },
+  "scenes": 2,
+  "schema": "e3_independent_training_probe_audit_v2",
+  "scope": "Training-only fixed probe artifact audit; no new rollout, outcome slices, fitting, or validation access.",
+  "split": "train_fit",
+  "status": "passed",
+  "trace_semantics": {
+    "branch_future_original_stop_probability": "recorded value is checked for range, terminal-table consistency and prefix agreement; future raw-softmax equality is not independently provable",
+    "branch_future_unmodified_duet_argmax": "not independently verifiable from compact branch trace: future raw argmax/logits are not retained",
+    "branch_prefix_and_forced_target": "independently checked using action trace, reference states and complete actual path",
+    "collector_source": "recorded implementation file SHAs matched current files; code specifies one forced target followed by pure DUET, which is an implementation constraint rather than an independent future-logit audit",
+    "known_graph_only_routing": "raw graph edge legality is verified; compact logs do not retain every revealed edge inventory, so discovery-time availability is not independently reconstructed",
+    "oracle_proximity": "minimum raw-graph distance to the annotated goal over every node in the complete executed path, including transit and historical return; oracle_success uses the strict distance < 3 m rule, not decision-node proximity or policy goal recognition",
+    "reference_raw_actions_and_stop_softmax": "independently checked against retained raw reference logits"
+  }
+}

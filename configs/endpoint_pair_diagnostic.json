@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "diagnostic_id": "D3-train-only-endpoint-pair-coverage",
+  "status": "specified_before_pair_coverage_results",
+  "purpose": "Assess whether original training instructions provide geometrically grounded instruction-dependent endpoint label reversals under the same observed history. No fitting or model inference.",
+  "source_annotation": "R2R/annotations/R2R_train_enc.json",
+  "allowed_splits": ["train_fit", "train_dev"],
+  "partition": {"dev_fraction": 0.2, "partition_seed": 20261003},
+  "selection_seed": 20261003,
+  "pairing": {
+    "same_scan": true,
+    "same_start": true,
+    "different_path_ids": true,
+    "different_goals": true,
+    "goal_separation_m_strictly_greater_than": 6.0,
+    "exclude_other_goal_anywhere_on_reference_path": true,
+    "heading_difference_unit": "degrees_modulo_360",
+    "heading_exact_tolerance_deg": 0.000001,
+    "heading_report_thresholds_deg": [15.0, 45.0],
+    "primary_heading_rule": "exact_within_tolerance",
+    "primary_requires_shared_prefix_edges": 0
+  },
+  "history": {
+    "construction": "path_A_then_reverse_A_to_start_then_path_B_and_opposite_order",
+    "observation_rule": "first_visit_nodes_only; repeated visited nodes are transit, not new observations",
+    "max_observed_states_each_order": 15,
+    "max_physical_walk_states": null,
+    "execution_boundary": "CPU verifies reference edge connectivity and a discovered-map path with visited-only intermediate nodes. A simulator replay must later verify actual DUET shortest-route, candidate-view angles, and observation parity."
+  },
+  "sampling": {
+    "enumeration": "all unordered same-start original-path pairs, before any model scores",
+    "independent_subset": "greedy path-disjoint pairs in SHA256([selection_seed,scan,path_id_a,path_id_b]) order",
+    "instruction_choice": "minimum SHA256([selection_seed,scan,path_id,instruction_index]) per original path",
+    "max_examples_per_report_stratum": 16,
+    "primary_manifest": "all selected path-disjoint exact-heading eligible pairs"
+  },
+  "coverage_gate": {
+    "train_fit_min_path_disjoint_pairs": 64,
+    "train_fit_min_scans": 8,
+    "train_dev_min_path_disjoint_pairs": 32,
+    "train_dev_min_scans": 4,
+    "interpretation": "Engineering pilot feasibility gate, not a power calculation or evidence of method benefit. Failure stops this strict same-start candidate; do not relax heading or goal rules after inspecting counts."
+  },
+  "access_policy": {
+    "validation_accesses": 0,
+    "gpu_calls": 0,
+    "training_updates": 0,
+    "load_visual_or_text_features": false,
+    "load_baseline_error_details": false,
+    "scope": "original training annotations and connectivity only"
+  },
+  "semantic_limits": [
+    "Distance-based goal membership is not proof of complete instruction following.",
+    "Shared start alone does not ensure compatible initial orientation; non-exact headings remain descriptive strata.",
+    "The shared overshoot history need not obey both original instructions; it supports endpoint recognition only, not action imitation labels.",
+    "train_dev scenes were seen by the official frozen base-model training recipe."
+  ]
+}

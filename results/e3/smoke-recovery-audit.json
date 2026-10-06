@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "drive_mounted": true,
+  "verified_task_records": 44,
+  "local_restore_directory_was_initially_absent": true,
+  "summary_sha256": "7d26cfa9384daac21fa25212c917bddffa7f8fb1ebce1c9874ac9c39f655c79e",
+  "manifest_sha256": "ec63020c22020a5ef425ce2cd83cbaa0a6ce0a9dcfb8ce4e806b6efea0951d55",
+  "summary_manifest_all_tasks_match_original_restored_cloud": true,
+  "scope": "completed-probe recovery on same runtime; orphan interruption covered by local fault-injection tests, not a VM eviction"
+}

@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "run_id": "r2r-residual-seed0-v1",
+  "scope": "research",
+  "cache": ["outputs/cache-round0"],
+  "local_root": "outputs/runs",
+  "backup_root": "/content/drive/MyDrive/VLN-Research/runs",
+  "checkpoint_every_steps": 100,
+  "checkpoint_every_seconds": 300,
+  "keep_local": 2,
+  "keep_backup": 5,
+  "max_process_seconds": 36000,
+  "max_vm_age_seconds": 37800,
+  "evaluation_reserve_seconds": 1800,
+  "training": {
+    "epochs": 3,
+    "batch_size": 32,
+    "lr": 0.001,
+    "hidden_dim": 128,
+    "max_delta": 1.0,
+    "hard_weight": 3.0,
+    "kl_weight": 0.1,
+    "seed": 0,
+    "device": "cuda"
+  },
+  "validation": {
+    "config": "configs/r2r.json",
+    "split": "train_dev",
+    "limit": null,
+    "timeout_seconds": 3600
+  }
+}

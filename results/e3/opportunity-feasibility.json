@@ -1,0 +1,242 @@
+{
+  "analysis_script_sha256": "af1f7bf7a8db031ddcef0d5890f0ed3483f36964f534fd637e2f478bfcca951a",
+  "global": {
+    "branches_are_independent_evidence": false,
+    "natural_and_perturbed_conditions_share_original_instructions": true,
+    "reference_condition_rollouts": 256,
+    "unique_original_instructions_union_splits_and_conditions": 128
+  },
+  "inputs": {
+    "train_dev": {
+      "directory": "/Users/xiaolong.xu/Documents/ChatGPT/\u89c6\u89c9\u8bed\u8a00\u5bfc\u822a--ai\u6258\u7ba1/outputs/study-20261006-e3/probe-dev-v1",
+      "experiment_sha256": "b7ad17809ca03948a12931c9120bc52fc62dc1a2505372450a725c00b5b1a966",
+      "identity_sha256": "3954cb08bd9ee7336e866110d032cc2bb66def433bdb18e4b892d60244f16cab",
+      "manifest_sha256": "70bb927714eadf448e5df8af4fc4b6765aec562caba98eadb6ff3c984d9f40c9",
+      "summary_sha256": "b1dcbb70d44551c14fe47471a5b751e9975798541fbe8cbce18774c7648640fd",
+      "verified_task_files": 1330
+    },
+    "train_fit": {
+      "directory": "/Users/xiaolong.xu/Documents/ChatGPT/\u89c6\u89c9\u8bed\u8a00\u5bfc\u822a--ai\u6258\u7ba1/outputs/study-20261006-e3/probe-fit-v1",
+      "experiment_sha256": "b7ad17809ca03948a12931c9120bc52fc62dc1a2505372450a725c00b5b1a966",
+      "identity_sha256": "c0bcb15eed18c61917c3c8297cb5c337b0197a00621f9988ae3aeffa1155d994",
+      "manifest_sha256": "2a09339eb7a8823c48948a7cc8e26cf868d1d7cf468fc838fdf3f7fa75c427e9",
+      "summary_sha256": "007a42899244084fe557d242193d6556399dd1d986a9417edc156cb8748e031a",
+      "verified_task_files": 1320
+    }
+  },
+  "label_only": true,
+  "schema": "e3_training_opportunity_feasibility_v1",
+  "scientific_interpretation": {
+    "automatic_promotion_threshold": null,
+    "facts": [
+      {
+        "claim": "Opportunity is measured on 128 selected training-scene instructions, with two conditions per instruction.",
+        "support": "Exact fixed selection and all branch inventories verified against complete task manifests."
+      },
+      {
+        "claim": "Earlier-step rescue identifies selected cases with an executable single-action correction before the original terminal decision.",
+        "support": "Every counted branch executes one chosen action and then a complete frozen DUET continuation."
+      },
+      {
+        "claim": "Reference oracle_success describes proximity anywhere on the full executed path, including transit and historical return.",
+        "support": "Its categories cannot be called observed decision-node history or evidence that the policy recognized the goal."
+      },
+      {
+        "claim": "Terminal-only rescue means no tested earlier selected state/candidate rescued that instruction.",
+        "support": "This finite probe does not exclude rescue at other untested states or actions."
+      }
+    ],
+    "learned_policy_evaluated": false,
+    "limitations": [
+      "Ground-truth outcomes choose hindsight categories; no inference-time ability has been demonstrated.",
+      "Natural and perturbed results must be interpreted separately; perturbation recovery cannot establish unseen improvement.",
+      "The original instructions share scenes, so they are not statistically independent scene-level replicates."
+    ],
+    "metric_evidence": "Recorded full-route metrics; this script checks identity, coverage and metric consistency but does not independently recompute geometry.",
+    "new_official_validation_access": false,
+    "unseen_sr_plus_5pp_established": false
+  },
+  "splits": {
+    "train_dev": {
+      "natural": {
+        "N_original_instructions": 64,
+        "actual_perturbed_instructions": 0,
+        "alternative_branch_rollouts_nonindependent": 469,
+        "baseline_failed_instructions": 0,
+        "baseline_spl_percent": 98.60179856399772,
+        "baseline_sr_percent": 100.0,
+        "branch_rollouts_including_anchors": 661,
+        "harmful_alternative": {
+          "instructions": 64,
+          "scenes": 12
+        },
+        "positive_delta_spl": {
+          "instructions": 9,
+          "scenes": 7
+        },
+        "reference_rollouts": 64,
+        "rescuable": {
+          "instructions": 0,
+          "scenes": 0
+        },
+        "rescuable_at_least_one_earlier_step": {
+          "instructions": 0,
+          "scenes": 0
+        },
+        "rescuable_at_reference_terminal_step_including_earlier_overlap": {
+          "instructions": 0,
+          "scenes": 0
+        },
+        "rescuable_only_at_reference_terminal_step": {
+          "instructions": 0,
+          "scenes": 0
+        },
+        "rescued_when_reference_full_path_already_entered_success_radius": {
+          "instructions": 0,
+          "scenes": 0
+        },
+        "rescued_when_reference_full_path_never_entered_success_radius": {
+          "instructions": 0,
+          "scenes": 0
+        },
+        "scenes": 12,
+        "scope_note": "Counts classify only the fixed selected states and candidate inventory; no exhaustive reachability claim."
+      },
+      "perturb_step2": {
+        "N_original_instructions": 64,
+        "actual_perturbed_instructions": 64,
+        "alternative_branch_rollouts_nonindependent": 388,
+        "baseline_failed_instructions": 5,
+        "baseline_spl_percent": 57.25247618971686,
+        "baseline_sr_percent": 92.1875,
+        "branch_rollouts_including_anchors": 541,
+        "harmful_alternative": {
+          "instructions": 57,
+          "scenes": 12
+        },
+        "positive_delta_spl": {
+          "instructions": 30,
+          "scenes": 11
+        },
+        "reference_rollouts": 64,
+        "rescuable": {
+          "instructions": 5,
+          "scenes": 5
+        },
+        "rescuable_at_least_one_earlier_step": {
+          "instructions": 5,
+          "scenes": 5
+        },
+        "rescuable_at_reference_terminal_step_including_earlier_overlap": {
+          "instructions": 4,
+          "scenes": 4
+        },
+        "rescuable_only_at_reference_terminal_step": {
+          "instructions": 0,
+          "scenes": 0
+        },
+        "rescued_when_reference_full_path_already_entered_success_radius": {
+          "instructions": 0,
+          "scenes": 0
+        },
+        "rescued_when_reference_full_path_never_entered_success_radius": {
+          "instructions": 5,
+          "scenes": 5
+        },
+        "scenes": 12,
+        "scope_note": "Counts classify only the fixed selected states and candidate inventory; no exhaustive reachability claim."
+      }
+    },
+    "train_fit": {
+      "natural": {
+        "N_original_instructions": 64,
+        "actual_perturbed_instructions": 0,
+        "alternative_branch_rollouts_nonindependent": 479,
+        "baseline_failed_instructions": 3,
+        "baseline_spl_percent": 93.83654644463789,
+        "baseline_sr_percent": 95.3125,
+        "branch_rollouts_including_anchors": 669,
+        "harmful_alternative": {
+          "instructions": 61,
+          "scenes": 47
+        },
+        "positive_delta_spl": {
+          "instructions": 6,
+          "scenes": 5
+        },
+        "reference_rollouts": 64,
+        "rescuable": {
+          "instructions": 2,
+          "scenes": 2
+        },
+        "rescuable_at_least_one_earlier_step": {
+          "instructions": 2,
+          "scenes": 2
+        },
+        "rescuable_at_reference_terminal_step_including_earlier_overlap": {
+          "instructions": 2,
+          "scenes": 2
+        },
+        "rescuable_only_at_reference_terminal_step": {
+          "instructions": 0,
+          "scenes": 0
+        },
+        "rescued_when_reference_full_path_already_entered_success_radius": {
+          "instructions": 1,
+          "scenes": 1
+        },
+        "rescued_when_reference_full_path_never_entered_success_radius": {
+          "instructions": 1,
+          "scenes": 1
+        },
+        "scenes": 49,
+        "scope_note": "Counts classify only the fixed selected states and candidate inventory; no exhaustive reachability claim."
+      },
+      "perturb_step2": {
+        "N_original_instructions": 64,
+        "actual_perturbed_instructions": 63,
+        "alternative_branch_rollouts_nonindependent": 375,
+        "baseline_failed_instructions": 1,
+        "baseline_spl_percent": 63.104071038951446,
+        "baseline_sr_percent": 98.4375,
+        "branch_rollouts_including_anchors": 523,
+        "harmful_alternative": {
+          "instructions": 57,
+          "scenes": 46
+        },
+        "positive_delta_spl": {
+          "instructions": 30,
+          "scenes": 27
+        },
+        "reference_rollouts": 64,
+        "rescuable": {
+          "instructions": 1,
+          "scenes": 1
+        },
+        "rescuable_at_least_one_earlier_step": {
+          "instructions": 1,
+          "scenes": 1
+        },
+        "rescuable_at_reference_terminal_step_including_earlier_overlap": {
+          "instructions": 1,
+          "scenes": 1
+        },
+        "rescuable_only_at_reference_terminal_step": {
+          "instructions": 0,
+          "scenes": 0
+        },
+        "rescued_when_reference_full_path_already_entered_success_radius": {
+          "instructions": 0,
+          "scenes": 0
+        },
+        "rescued_when_reference_full_path_never_entered_success_radius": {
+          "instructions": 1,
+          "scenes": 1
+        },
+        "scenes": 49,
+        "scope_note": "Counts classify only the fixed selected states and candidate inventory; no exhaustive reachability claim."
+      }
+    }
+  },
+  "training_only": true
+}

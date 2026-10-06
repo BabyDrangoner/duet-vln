@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "experiment_id": "D3-controls-common-pool",
+  "cache_schema": "duet_endpoint_controls_v2",
+  "length_convention": "official_connectivity_actual_edges_with_preserved_execution_graph_values",
+  "phase": "full",
+  "controls_report_sha256": "3465e67732d795b1e2b1a29522fa4f567b785279edeb8223fc8dfad628e2e1f6",
+  "base_checkpoint_sha256": "c1ed3ed27e1acbffec1fa81fbdd06e16498398809a7f80f349043ba74c21ba94",
+  "seed": 0,
+  "selection": {"train_fit": 512, "train_dev": 128},
+  "pool_selection": {"train_fit": 512, "train_dev": 128},
+  "selection_order": "ascending_selection_hash_prefix_of_fixed_common_pool",
+  "automatic_expansion": false,
+  "rollouts_per_pair": 6,
+  "natural_rollouts_per_pair": 2,
+  "c2_rollouts_per_pair": 4,
+  "max_observed_states": 15,
+  "feature_schema": "concat_global_local_stop_crossmodal_v1",
+  "feature_dim": 1536,
+  "feature_dtype": "float32",
+  "training_updates": 0,
+  "validation_accesses": 0
+}

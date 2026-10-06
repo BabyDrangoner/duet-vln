@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "experiment_id": "E0-natural-endpoint-bce-control",
+  "role": "ordinary learned goal-classification control and engineering pilot; not a novel paper method",
+  "specified_before_training": true,
+  "source_collections": {
+    "train_fit": "c7b1a8ce3940f3bc29958a173ddc01eb8630287ed906092b4b9256722d4a1223",
+    "train_dev": "019b63425176ee7e545543137e134e476b15b59823b26e7ea1a6c627d98f68fa"
+  },
+  "feature": "concat of frozen DUET global and local cross-modal STOP embeddings, 1536 dimensions; includes every actual decision state",
+  "target": "training-only graph distance from observed current node to annotated goal < 3 metres",
+  "label_scope": "R2R success-region membership; not a full instruction-completion label",
+  "architecture": {"input_dim": 1536, "hidden_dim": 128, "activation": "ReLU", "output_dim": 1},
+  "optimizer": {"name": "AdamW", "lr": 0.001, "weight_decay": 0.0001},
+  "seed": 0,
+  "epochs": 20,
+  "batch_episodes": 32,
+  "loss": "BCE mean over states within each episode, then mean over episodes; no class reweighting",
+  "fitting_split": "train_fit",
+  "checkpoint_monitor": "train_dev episode-weighted BCE, explicitly a diagnostic checkpoint, not best navigation checkpoint",
+  "policy": "keep baseline movement actions and online STOP; rank observed historical endpoints by the probe logit at termination; include complete return path in evaluation",
+  "mandatory_gates": [
+    "exact three-branch logit parity when replaying every cached source state",
+    "train/dev provenance equality and disjoint houses",
+    "nonzero positive and negative labels, plus per-house support reported",
+    "unchanged movement/online termination verified before attributing endpoint differences",
+    "registered full official validation access before any such evaluation"
+  ],
+  "interpretation": "Small D1 sample only checks feasibility of the ordinary goal head. It cannot establish the later paired-data hypothesis or full-data negative results.",
+  "persistence": "per-episode feature cache and full optimizer/RNG training checkpoints backed up to mounted Drive with SHA readback before local checkpoint pruning"
+}

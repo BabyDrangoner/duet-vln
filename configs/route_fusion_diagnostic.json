@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "diagnostic_id": "R0-route-aligned-fusion",
+  "registered_utc": "2026-10-03T06:50:55.679774+00:00",
+  "status": "specified_before_route_fusion_analysis",
+  "role": "exploratory mechanism diagnosis on previously collected training-scene traces; not an independent confirmatory test",
+  "source_fact": "DUET vilmodel.py sums logits of local visited neighbors into bw_logits, then adds that same value to every remote unvisited candidate.",
+  "hypothesis": "Using the executed first-hop local evidence for each remote target may expose decision information lost by shared backward fusion. Common-logit-shift sensitivity is a mathematical symptom only, not proof of natural errors.",
+  "collections": {
+    "train_fit": "c7b1a8ce3940f3bc29958a173ddc01eb8630287ed906092b4b9256722d4a1223",
+    "train_dev": "019b63425176ee7e545543137e134e476b15b59823b26e7ea1a6c627d98f68fa"
+  },
+  "sampling": "Every saved state; descriptive coverage includes forced endings, regret interventions use exactly eligible states; no score/label-dependent subset selection.",
+  "new_gpu_collection": false,
+  "new_official_validation_access": false,
+  "fitting": false,
+  "variants": [
+    "original_shared_sum",
+    "executed_firsthop_local",
+    "mean_backward_local",
+    "logsumexp_backward_local",
+    "hspr_style_remote_double_global"
+  ],
+  "data": "Saved weighted global/local logits, current discovered graph and exposed local neighbors only. Ground-truth costs isolated for diagnostics. Reconstruct graph using only revealed endpoints from connectivity positions; no unseen edges.",
+  "parity_gate": "Reconstruct upstream chronological FloydGraph paths, node/visited order and all-pairs distances; reproduce saved original fused logits and executed next paths. Refuse interpretation on disagreement.",
+  "fixed_shift_checks": [
+    -1.0,
+    1.0
+  ],
+  "shift_scope": "Uniform shifts applied to every valid weighted local logit, preserving its local softmax. Original remote logits should respond K*c and STOP/local c. Route/mean/logsumexp controls should be shift invariant in ideal arithmetic; numeric tie effects must be reported separately. HSPR-style remote=2g should have zero response to local common shift, while STOP/local respond c; it is not an invariant control.",
+  "outputs": [
+    "remote_candidate_coverage",
+    "K_ge_2_visited_neighbor_coverage",
+    "multiple_remote_firsthop_group_coverage",
+    "chosen_remote_fraction",
+    "candidate_and_chosen_teacher_execution_regret",
+    "argmax_fixes_and_harms",
+    "per_scene_counts",
+    "common_shift_sensitivity"
+  ],
+  "counterfactual_scope": "Single saved-state score changes, not complete navigation SR/SPL.",
+  "promotion": "Do not train a paper method merely because a fixed score improves one offline count. Require meaningful natural coverage, useful held-out decision evidence beyond mean/logsumexp simple corrections, prior-art distinction and registered complete-navigation controls.",
+  "prior_art_status": "HSPR directly identifies the DUET shared backward-sum issue. Discovering that issue is not novel. Actual first-hop use is under targeted review.",
+  "prior_art": {
+    "HSPR_paper": "https://arxiv.org/pdf/2403.11541",
+    "HSPR_code": "https://github.com/iCityLab/HSPR/blob/main/reasoning_nav_src/models/vilmodel.py",
+    "control_scope": "Use the corresponding remote=2*saved weighted global score rule on frozen DUET only; this does not reproduce HSPR model/training/proximity.",
+    "source_anchor": "residual fusion; fused_logits[i, j] += global_logits[i, j]"
+  },
+  "specified_update_before_execution_utc": "2026-10-03T06:52:14.669681+00:00",
+  "implementation_repair": {
+    "kind": "implementation_repair_no_control_or_sample_change",
+    "recorded_utc": "2026-10-03T07:02:57.783288+00:00",
+    "cause": "MatterSim parses JSON pose as float, stores glm::vec3, and promotes those rounded coordinates to Python floats. Direct use of JSON double coordinates differed from actual collected observations.",
+    "coordinate_semantics": "JSON pose coordinate -> IEEE float32 -> Python float, then original DUET double differences/NumPy sqrt.",
+    "failed_original_max_pair_error": 4.76837158203125e-07,
+    "original_failure_log_sha256": "604f0d2cb07bae71acbe3947c1cfd0ceed93952039ea49c3683449dc4c7cbfe3",
+    "first_episode_geometry_validation": {
+      "states": 6,
+      "max_pair_error": 0.0,
+      "source_relative_position_vectors_exact": 34
+    },
+    "gates": "No graph-distance or fused-logit tolerance changed; exact FP32 equality remains required.",
+    "research_effects_inspected": false
+  }
+}

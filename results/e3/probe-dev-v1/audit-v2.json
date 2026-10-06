@@ -1,0 +1,92 @@
+{
+  "actual_adjacent_transitions_checked": 10410,
+  "anchor_full_path_checks": 345,
+  "artifact_identity": {
+    "connectivity": {
+      "files": 90,
+      "inventory_sha256": "ef4a536632ad2d76b94c5b7ee41fffcc470a33844f7e7a9ca048739cdaa7d6af",
+      "used_scan_sha256": {
+        "1pXnuDYAj8r": "f7c9345a17ff416ff22815d9a1b3c59a946e49f4989edd7ecf1c44cabc6730cf",
+        "5LpN3gDmAk7": "2b24541c87a08fdb98d1cd7665cf803a4be7bec146d3339d47b093d58f0152e4",
+        "HxpKQynjfin": "17d6f634a3b495ace01c41fa84391b8c8a22a5d62b58d1c364cb23b22adeb1b2",
+        "JeFG25nYj2p": "03ca7058be35acf06c0547855b33a3fec982f383e8c261b8b0851b56ddb3431f",
+        "JmbYfDe2QKZ": "bbd21c28da7674425ae8d6de662ceef67482aae561d29bf579ac0d7c91be5cf2",
+        "PuKPg4mmafe": "5d80e1975787b91d2af3b2bd5bed70059bfa65e18dd8af273f197d15461bf13b",
+        "V2XKFyX4ASd": "16d0e0af6521423e2eddb05805ba3bba7b569cb99b099a96493191e145df2ed9",
+        "VzqfbhrpDEA": "6b5c2dca3b87098c22321955b8c004982eee15a1257923fc5bf5e004cd89c608",
+        "e9zR4mvMWw7": "b46dd26e1fd984ff5ac3ceeee2aa1580a69f5dc5cb0a6dbb013c60e4dbae3131",
+        "r47D5H71a5s": "f2d7d83dc4bcfd357a399f72debfe27c8a8cd47d08209e683e74f8a6245302fd",
+        "rPc6DW4iMge": "a02f63f7e161c527f20f52af7fd3cd8bf07b94822d6624d8e365afa4369d5b27",
+        "sT4fr6TAbpF": "b53e5eae6cde845841e74a981511f78dfa1803c8094dc1f5d20ed3911ffd1db2"
+      }
+    },
+    "identity_sha256": "3954cb08bd9ee7336e866110d032cc2bb66def433bdb18e4b892d60244f16cab",
+    "manifest_sha256": "70bb927714eadf448e5df8af4fc4b6765aec562caba98eadb6ff3c984d9f40c9",
+    "probe_summary_sha256": "b1dcbb70d44551c14fe47471a5b751e9975798541fbe8cbce18774c7648640fd",
+    "training_annotation_sha256": "8ffdfd5a5c5efeef56af7883ebac28d854a64161f1d0a3d0e52ba75086b726b8"
+  },
+  "audit_source_sha256": "60ddb2cddac2c29a9b07c94a3a2660a31f057c31c68a4a45320215168063b77a",
+  "branch_rollouts_checked": 1202,
+  "checks": {
+    "all_adjacent_edges_physically_legal": true,
+    "anchor_entire_path_and_metrics_match": true,
+    "branch_shared_prefix_and_target_action_match": true,
+    "complete_path_including_returns_charged": true,
+    "exact_task_inventory_and_sha256": true,
+    "fixed_training_scene_partition_and_instruction_selection": true,
+    "full_executed_path_oracle_success_and_error_recomputed_from_raw_graph": true,
+    "original_15_decision_budget": true,
+    "recorded_original_stop_evidence_and_historical_endpoint_consistent": true,
+    "reference_actions_match_stored_raw_logits_and_fixed_perturbation": true,
+    "sr_spl_ne_length_recomputed_from_raw_graph": true
+  },
+  "instructions": 64,
+  "max_absolute_metric_errors": {
+    "action_steps": 0.0,
+    "nav_error": 3.552713678800501e-15,
+    "oracle_error": 3.552713678800501e-15,
+    "oracle_success": 0.0,
+    "spl": 3.3306690738754696e-16,
+    "spl_gain": 3.3306690738754696e-16,
+    "success": 0.0,
+    "trajectory_lengths": 1.4210854715202004e-14,
+    "trajectory_steps": 0.0
+  },
+  "maximum_decision_count": 15,
+  "metric_fields_recomputed": [
+    "success",
+    "spl",
+    "nav_error",
+    "trajectory_lengths",
+    "oracle_success",
+    "oracle_error"
+  ],
+  "metric_tolerance": {
+    "absolute": 2e-10,
+    "relative": 2e-12
+  },
+  "metric_values_recomputed": 7980,
+  "probe_scope": "training_opportunity_probe",
+  "recorded_utc": "2026-10-06T07:43:18.930693+00:00",
+  "reference_rollouts_checked": 128,
+  "resources": {
+    "cpu_seconds": 0.877445589999752,
+    "gpu_seconds": 0,
+    "new_navigation_episodes": 0,
+    "official_validation_reads": 0
+  },
+  "scenes": 12,
+  "schema": "e3_independent_training_probe_audit_v2",
+  "scope": "Training-only fixed probe artifact audit; no new rollout, outcome slices, fitting, or validation access.",
+  "split": "train_dev",
+  "status": "passed",
+  "trace_semantics": {
+    "branch_future_original_stop_probability": "recorded value is checked for range, terminal-table consistency and prefix agreement; future raw-softmax equality is not independently provable",
+    "branch_future_unmodified_duet_argmax": "not independently verifiable from compact branch trace: future raw argmax/logits are not retained",
+    "branch_prefix_and_forced_target": "independently checked using action trace, reference states and complete actual path",
+    "collector_source": "recorded implementation file SHAs matched current files; code specifies one forced target followed by pure DUET, which is an implementation constraint rather than an independent future-logit audit",
+    "known_graph_only_routing": "raw graph edge legality is verified; compact logs do not retain every revealed edge inventory, so discovery-time availability is not independently reconstructed",
+    "oracle_proximity": "minimum raw-graph distance to the annotated goal over every node in the complete executed path, including transit and historical return; oracle_success uses the strict distance < 3 m rule, not decision-node proximity or policy goal recognition",
+    "reference_raw_actions_and_stop_softmax": "independently checked against retained raw reference logits"
+  }
+}

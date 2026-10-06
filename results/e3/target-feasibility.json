@@ -1,0 +1,30 @@
+{
+  "schema": "e3_target_feasibility_v1",
+  "recorded_utc": "2026-10-06T07:11:43.383621+00:00",
+  "config_sha256": "b7ad17809ca03948a12931c9120bc52fc62dc1a2505372450a725c00b5b1a966",
+  "uses": "only previously completed aggregate reports; no new validation slicing, rollout, fitting or threshold search",
+  "target": {
+    "reference": "original frozen DUET on full R2R val_unseen",
+    "sr_gain_percentage_points_min": 5.0,
+    "spl_gain_percentage_points_min": 0.0,
+    "baseline_sr_percent": 71.51979565772669,
+    "baseline_spl_percent": 60.409849847319485,
+    "baseline_successes": 1680,
+    "episodes": 2349,
+    "target_successes_min": 1798,
+    "net_rescues_min": 118,
+    "validation_report_sha256": "32e4b21422a86c2b8a7e81eb1b423b903ac19cf25972d450c003bdd33d57cd61"
+  },
+  "arithmetic": {
+    "sr_target_percent": 76.51979565772669,
+    "minimum_successes": 1798,
+    "minimum_net_rescues": 118,
+    "realizable_threshold_sr_percent": 76.54320987654322,
+    "historical_rescuable_baseline_failures": 212,
+    "historical_hindsight_sr_ceiling_percent": 80.54491272882078,
+    "minimum_fraction_history_rescuable_needed_if_no_harms": 0.5566037735849056
+  },
+  "decision": "probe one online action intervention and full frozen-policy continuation on training scenes; do not promise +5",
+  "new_validation_accesses": 0,
+  "measured_e3_navigation_gain": null
+}

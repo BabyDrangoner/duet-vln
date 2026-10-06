@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "extension_id": "D2-branch-v1",
+  "registered_utc": "2026-10-03T06:16:19.415958+00:00",
+  "status": "specified_before_branch_observation_generation",
+  "reason": "Natural arrival availability excluded almost all unchosen candidates and almost all visual dispersion variation.",
+  "allowed_expansion_number": 1,
+  "maximum_expansions": 1,
+  "collections": {
+    "train": "c7b1a8ce3940f3bc29958a173ddc01eb8630287ed906092b4b9256722d4a1223",
+    "dev": "019b63425176ee7e545543137e134e476b15b59823b26e7ea1a6c627d98f68fa"
+  },
+  "state_sampling": "Exactly all eligible historical states in the existing D1 collections; no new policy rollouts or oracle-dependent state filtering.",
+  "candidate_sampling": "Exactly replay_diagnostics.chosen_candidates(state,seed=0), chosen non-STOP plus one hash-selected other legal candidate, determined before future availability.",
+  "expected_candidates": {
+    "train_fit": 2061,
+    "train_dev": 1087
+  },
+  "cohort": "simulated_branch",
+  "natural_and_branch_reports_separate": true,
+  "arrival_step_in_original_episode": null,
+  "branch_execution": "Rebuild the prefix discovered graph in original update order; verify distances, step/hop features and visited set; execute the legal route using the same final predecessor pointId heading/elevation as DUET. Independent simulator only.",
+  "parity_gate": "Verify chosen next-step natural arrivals match branch heading and full panorama features, then verify original navigation logits and input SHA remain identical.",
+  "privileged_observation": "Target panorama encoding includes new candidate nav_types and angles. It is a full offline observation, not pure visual completion. Only the target graph feature is replaced for interventions.",
+  "controls": [
+    "arrival",
+    "arrival_normmatched",
+    "arrival_headingmatched",
+    "arrival_headingmatched_normmatched",
+    "last_source",
+    "noise_normmatched",
+    "shuffled_arrival",
+    "shuffled_normmatched",
+    "shuffled_headingmatched"
+  ],
+  "shuffle_missing_policy": "Retain row in primary cohort; matched-control comparisons use the same available subset. Report geometry mismatch.",
+  "fitting": "Only train_fit; fixed ridge/logistic alpha=1, original P3 raw arrival-delta target, existing 5-fold by training houses; no new hyperparameter search.",
+  "primary_diagnostics": [
+    "P0+P1 versus P0 on teacher-optimal log loss",
+    "P3 versus P0 and P0+P1",
+    "true/normmatched versus shuffled on identical subsets"
+  ],
+  "secondary_diagnostics": [
+    "regret MAE",
+    "orientation control",
+    "chosen/unchosen by single/multiple source coverage",
+    "negative-label counts by scene"
+  ],
+  "uncertainty": "Paired whole-house bootstrap seed0,1000 replicates; teacher/execution classification equivalence is not independent evidence.",
+  "training_promotion": "Require positive incremental observable signal and a meaningful auxiliary observation-specific signal beyond matched controls before main-method training. If evidence remains insufficient after this expansion, stop this proposed arrival-margin supervision rather than keep changing probes.",
+  "budget": {
+    "max_seconds_per_split": 7200,
+    "gpu": "existing authorized T4",
+    "new_dataset_downloads": false
+  },
+  "future_inference_inputs": false,
+  "controls_semantics": {
+    "arrival": "endpoint panorama at last legal route edge pointId heading/elevation",
+    "arrival_headingmatched": "same endpoint re-encoded at historical state heading/elevation",
+    "shuffled_arrival": "geometry-selected alternative candidate at its own legal route arrival heading",
+    "shuffled_normmatched": "same donor scaled to original target proxy norm",
+    "shuffled_headingmatched": "geometry-selected alternative candidate re-encoded at historical state heading/elevation"
+  },
+  "smoke_validation": {
+    "collection_sha256": "8e54ddaa41fad3f5116014ac9c85c553b0672368c73f813c5b84301cd80f085b",
+    "episodes": 16,
+    "role": "implementation acceptance only; these episode IDs are a subset of D1 and smoke rows are excluded from statistical analysis"
+  },
+  "specification_completed_utc": "2026-10-03T06:22:48.805308+00:00"
+}

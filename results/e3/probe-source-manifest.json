@@ -1,0 +1,7 @@
+{
+  "scripts/probe_continuation_actions.py": "2d60ac2e7e89aa992fa9e235f07154d3c4ea10e79b73a634945674b440801efe",
+  "src/vln_improve/continuation_probe.py": "54fae5cbbd3e0b89f61049bad5209d86c223185ffcca005ac73f7cf5675d1ff1",
+  "configs/e3_continuation_probe_v1.json": "b7ad17809ca03948a12931c9120bc52fc62dc1a2505372450a725c00b5b1a966",
+  "tests/test_continuation_probe.py": "80396a5d64185a1668e75a6df8a783f54b308f8cfa2a827a7e0504f38d7b214e",
+  "tests/test_continuation_probe_integration_audit.py": "cc1c0428e71555875202b34fcdf07b7fd2b339af2a3a826f50ec1f72bfbdb571"
+}

@@ -1,0 +1,153 @@
+{
+  "schema": "repository_evidence_manifest_v1",
+  "historical_results_unchanged": true,
+  "archived_at": "2026-10-06",
+  "artifacts": [
+    {
+      "local_path": "outputs/study-20261006-e3/probe-records-v1.tar.gz",
+      "bytes": 2740934,
+      "sha256": "46dc2706753dbde8cc385f58814513f6c06640f58f4897e1f10d0eb1f65d60c8",
+      "included_in_git": false,
+      "files": 2767,
+      "historical_drive_directory": "/content/drive/MyDrive/VLN-Research/studies/arrival-evidence-20261003/e3-continuation-v1-20261006"
+    },
+    {
+      "local_path": "outputs/study-20261006-e3/probe-source-v1.tar.gz",
+      "bytes": 16557,
+      "sha256": "7dab7d7e75be63b4a8929e57dcd14568d9263e1baf0503bfd79fafd1ab7d4129",
+      "included_in_git": false,
+      "historical_drive_directory": "/content/drive/MyDrive/VLN-Research/studies/arrival-evidence-20261003/e3-continuation-v1-20261006"
+    },
+    {
+      "local_path": "outputs/study-20261006-e3/e3-code-and-results.tar.gz",
+      "bytes": 6309026,
+      "sha256": "9f224403d8e58b3b3a5ee5c40ad35a0a52c4b23366fd8f9681733c1a6f4be8d3",
+      "included_in_git": false,
+      "files": 213,
+      "historical_drive_directory": "/content/drive/MyDrive/VLN-Research/studies/arrival-evidence-20261003/e3-continuation-v1-20261006"
+    },
+    {
+      "local_path": "outputs/study-20261006-e3/runtime-inputs.tar.gz",
+      "bytes": 2675640,
+      "sha256": "1027265e494a9c23f7c8f3da852b9440921733dc791aaa473674cb4b9b0898bd",
+      "included_in_git": false,
+      "historical_drive_directory": "/content/drive/MyDrive/VLN-Research/studies/arrival-evidence-20261003/e3-continuation-v1-20261006"
+    }
+  ],
+  "copied_files": [
+    {
+      "from": "outputs/study-20261006-e3/target-feasibility.json",
+      "to": "results/e3/target-feasibility.json",
+      "sha256": "f199677d65b151489c39da6a5542c825af2ef8dc222ceebc1443199cfbaad15b",
+      "original_sha256": "f199677d65b151489c39da6a5542c825af2ef8dc222ceebc1443199cfbaad15b"
+    },
+    {
+      "from": "outputs/study-20261006-e3/opportunity-feasibility.json",
+      "to": "results/e3/opportunity-feasibility.json",
+      "sha256": "ef5c4c9cf158aee4343c752a70925ea2c7c8511caef64fd672c18704b827d8c9",
+      "original_sha256": "ef5c4c9cf158aee4343c752a70925ea2c7c8511caef64fd672c18704b827d8c9"
+    },
+    {
+      "from": "outputs/study-20261006-e3/completion-decision.json",
+      "to": "results/e3/completion-decision.json",
+      "sha256": "a645b7b6700a36961cab78865066800629b81a987287e142e32e4fdafe3223c6",
+      "original_sha256": "a645b7b6700a36961cab78865066800629b81a987287e142e32e4fdafe3223c6"
+    },
+    {
+      "from": "outputs/study-20261006-e3/smoke-recovery-audit.json",
+      "to": "results/e3/smoke-recovery-audit.json",
+      "sha256": "046ed2c14b5bcf9288bf4ff8ead26485fee89ac4eb788ce0527a98109bc832a7",
+      "original_sha256": "046ed2c14b5bcf9288bf4ff8ead26485fee89ac4eb788ce0527a98109bc832a7"
+    },
+    {
+      "from": "outputs/study-20261006-e3/probe-source-manifest.json",
+      "to": "results/e3/probe-source-manifest.json",
+      "sha256": "105bc0856491f9b066f63d18ace1ec38c3dbe7ea6ac61db15d898b94dab5e7c4",
+      "original_sha256": "105bc0856491f9b066f63d18ace1ec38c3dbe7ea6ac61db15d898b94dab5e7c4"
+    },
+    {
+      "from": "outputs/study-20261006-e3/e3-delivery-manifest.json",
+      "to": "results/e3/e3-delivery-manifest.json",
+      "sha256": "90daa9df13825b36b231fc77525d339d401b719e419991e404017423c5b7b1aa",
+      "original_sha256": "90daa9df13825b36b231fc77525d339d401b719e419991e404017423c5b7b1aa"
+    },
+    {
+      "from": "outputs/study-20261006-e3/e3-delivery-receipt.json",
+      "to": "results/e3/e3-delivery-receipt.json",
+      "sha256": "0237b10ce8b671557e2ca3f7dea0dd287ad40261f9408ab4fdf2066644dda330",
+      "original_sha256": "0237b10ce8b671557e2ca3f7dea0dd287ad40261f9408ab4fdf2066644dda330"
+    },
+    {
+      "from": "outputs/study-20261006-e3/e3-drive-delivery-receipt.json",
+      "to": "results/e3/e3-drive-delivery-receipt.json",
+      "sha256": "f769df3e0d3be81f622aa2b2be1ab2a6679315de56dae5ab447b168cffcc1548",
+      "original_sha256": "f769df3e0d3be81f622aa2b2be1ab2a6679315de56dae5ab447b168cffcc1548"
+    },
+    {
+      "from": "outputs/study-20261006-e3/probe-fit-v1/probe-summary.json",
+      "to": "results/e3/probe-fit-v1/probe-summary.json",
+      "sha256": "007a42899244084fe557d242193d6556399dd1d986a9417edc156cb8748e031a",
+      "original_sha256": "007a42899244084fe557d242193d6556399dd1d986a9417edc156cb8748e031a"
+    },
+    {
+      "from": "outputs/study-20261006-e3/probe-fit-v1/audit-v2.json",
+      "to": "results/e3/probe-fit-v1/audit-v2.json",
+      "sha256": "0606cbe0f854dfe0d05eac3645d21ae956da384d9ea7156a5a0de335747f4509",
+      "original_sha256": "0606cbe0f854dfe0d05eac3645d21ae956da384d9ea7156a5a0de335747f4509"
+    },
+    {
+      "from": "outputs/study-20261006-e3/probe-dev-v1/probe-summary.json",
+      "to": "results/e3/probe-dev-v1/probe-summary.json",
+      "sha256": "b1dcbb70d44551c14fe47471a5b751e9975798541fbe8cbce18774c7648640fd",
+      "original_sha256": "b1dcbb70d44551c14fe47471a5b751e9975798541fbe8cbce18774c7648640fd"
+    },
+    {
+      "from": "outputs/study-20261006-e3/probe-dev-v1/audit-v2.json",
+      "to": "results/e3/probe-dev-v1/audit-v2.json",
+      "sha256": "ae81163b3a863a40cb33a566f72e549f3ba041efb37121116640641afa35241f",
+      "original_sha256": "ae81163b3a863a40cb33a566f72e549f3ba041efb37121116640641afa35241f"
+    },
+    {
+      "from": "outputs/study-20261006-e3/smoke-fit-v1/probe-summary.json",
+      "to": "results/e3/smoke-fit-v1/probe-summary.json",
+      "sha256": "7d26cfa9384daac21fa25212c917bddffa7f8fb1ebce1c9874ac9c39f655c79e",
+      "original_sha256": "7d26cfa9384daac21fa25212c917bddffa7f8fb1ebce1c9874ac9c39f655c79e"
+    },
+    {
+      "from": "outputs/study-20261006-e3/smoke-fit-v1/audit-v2.json",
+      "to": "results/e3/smoke-fit-v1/audit-v2.json",
+      "sha256": "cebba9187fff3b46114459b90ee97a562a569c6de70b5b205335e717d0215b02",
+      "original_sha256": "cebba9187fff3b46114459b90ee97a562a569c6de70b5b205335e717d0215b02"
+    },
+    {
+      "from": "outputs/study-20261006-e3/learning-feasibility.md",
+      "to": "docs/e3/learning-feasibility.md",
+      "sha256": "a9dc3fa844c2d479715c7084bf7f2527b42b3d6c2a8d9151881b021b67a11157",
+      "original_sha256": "5b2980a4d77b03b05911646832d778a74aa28b213b09e790c4ddf0685d950319"
+    },
+    {
+      "from": "outputs/study-20261006-e3/integration-feasibility.md",
+      "to": "docs/e3/integration-feasibility.md",
+      "sha256": "88d503bda8a3b78290f40dcc14e6e7e2b22e42980e07429689120be62eac423d",
+      "original_sha256": "88d503bda8a3b78290f40dcc14e6e7e2b22e42980e07429689120be62eac423d"
+    },
+    {
+      "from": "outputs/study-20261006-e3/prior-art-feasibility.md",
+      "to": "docs/e3/prior-art-feasibility.md",
+      "sha256": "a6f64a9307632b9d5828e584b4bf34b916632840a89e77f933df9581e4e8463f",
+      "original_sha256": "a6f64a9307632b9d5828e584b4bf34b916632840a89e77f933df9581e4e8463f"
+    },
+    {
+      "from": "outputs/study-20261006-e3/probe-protocol-review.md",
+      "to": "docs/e3/probe-protocol-review.md",
+      "sha256": "720e39aceccafc6fe2a5e9887fecd1754082e36830984a922728775bdf787398",
+      "original_sha256": "720e39aceccafc6fe2a5e9887fecd1754082e36830984a922728775bdf787398"
+    },
+    {
+      "from": "outputs/study-20261006-e2-loop/formal-v1/loop-report.json",
+      "to": "results/e2/loop-report.json",
+      "sha256": "e093fd8fefe9b44f98df4f0b58fe7712915760109d8f5e0b5324278e5b7c6de2",
+      "original_sha256": "e093fd8fefe9b44f98df4f0b58fe7712915760109d8f5e0b5324278e5b7c6de2"
+    }
+  ]
+}

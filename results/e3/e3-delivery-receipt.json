@@ -1,0 +1,9 @@
+{
+  "status": "verified",
+  "files": 213,
+  "bytes": 6309026,
+  "sha256": "9f224403d8e58b3b3a5ee5c40ad35a0a52c4b23366fd8f9681733c1a6f4be8d3",
+  "path": "outputs/study-20261006-e3/e3-code-and-results.tar.gz",
+  "datasets_included": false,
+  "nested_records_archive": "outputs/study-20261006-e3/probe-records-v1.tar.gz"
+}

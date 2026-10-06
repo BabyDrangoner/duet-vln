@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "diagnostic_id": "D3c-train-only-endpoint-control-feasibility",
+  "status": "specified_before_C2_geometry_results",
+  "coverage_report_sha256": "67f1166d0f90206bea8bf765ec5540172ee1e81ee9aa8aecbb38b6ccc5c21fe0",
+  "source_annotation": "R2R/annotations/R2R_train_enc.json",
+  "allowed_splits": ["train_fit", "train_dev"],
+  "partition": {"dev_fraction": 0.2, "partition_seed": 20261003},
+  "generation_seed": 0,
+  "max_observed_states": 15,
+  "positive_history": "original reference path, first-visit observations; final first-visit node must equal its own original goal",
+  "negative_history": "original path followed by deterministic shortest goal-to-q route; q is not on original path; first-visit observations only",
+  "q_distance_m": {"minimum_inclusive": 3.0, "maximum_inclusive": 6.0},
+  "q_selection": "first feasible q by ascending SHA256([generation_seed,scan,path_id,q]); path_id is the original normalized string; do not consult the paired goal",
+  "shortest_path_rule": "D3 shortest_distances: heap(distance,node_id); neighbors in lexicographic node_id order; replace parent only for strictly smaller distance; equal-distance parent is retained",
+  "discovered_map_rule": "D3 reachability: a new target may be reached only through previously observed intermediate nodes; simulator shortest-route tie and angle parity remain unverified",
+  "common_pool": {
+    "source": "D3 primary_path_disjoint_manifest only; no rematching",
+    "order": "ascending original selection_hash",
+    "require_both_original_paths_feasible": true,
+    "train_fit_pairs": 512,
+    "train_dev_pairs": 128,
+    "on_shortfall": "coverage_pass=false; preserve complete audit and available selection; no automatic downsizing or collection"
+  },
+  "access_policy": {
+    "gpu_calls": 0,
+    "training_updates": 0,
+    "validation_accesses": 0,
+    "load_features_or_models": false,
+    "load_policy_error_results": false
+  },
+  "output": "Immutable source/spec/code hashes, all original-path and candidate filtering counts, complete control histories, pair eligibility audit, and fixed common-pool manifest. No method or navigation result."
+}

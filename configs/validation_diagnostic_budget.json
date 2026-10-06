@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "study_id": "arrival-evidence-20261003",
+  "category": "diagnostic_analysis",
+  "budget_id": "bounded-error-diagnosis-v1",
+  "registered_utc": "2026-10-03T06:43:32.304904+00:00",
+  "reason": "The first arrival-margin candidate failed its fixed probe gate; allow at most three separately registered full-validation error analyses for selecting a new mechanism, with no optimizer fitting or validation feature normalization.",
+  "max_variants": 3,
+  "max_accesses": 3,
+  "max_accesses_per_variant": 1,
+  "seeds": [
+    0
+  ],
+  "splits": [
+    "val_unseen"
+  ]
+}

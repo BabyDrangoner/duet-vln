@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "study_id": "arrival-evidence-20261003",
+  "status": "arrival_margin_candidate_stopped_after_registered_expansion",
+  "baseline": {
+    "model": "frozen official DUET R2R",
+    "config": "configs/r2r.json",
+    "selection_split": "val_unseen",
+    "selection_episodes": 2349,
+    "selection_rule": "SR first, SPL tie-break; review material path-efficiency degradation before promotion",
+    "official_val_unseen_role": "bounded development, checkpoint and method selection, all ablations and three-seed reporting; log every access; not a blind test",
+    "base_checkpoint_sha256": "c1ed3ed27e1acbffec1fa81fbdd06e16498398809a7f80f349043ba74c21ba94",
+    "base_checkpoint_training_exposure": "Official recipe uses full R2R train and augmentation; train_fit/train_dev only separate this project's adapter fitting and development",
+    "base_checkpoint_selection_exposure": "Official R2R code selects best_val_unseen by validation-unseen SPL; exact author training logs are not available here",
+    "train_fit_episodes": 11149,
+    "train_fit_scans": 49,
+    "train_dev_scans": 12,
+    "train_dev_role": "adapter-held-out diagnostic and regression set; seen by the base-model training recipe, not unseen-environment evaluation",
+    "train_dev_completed_report": {
+      "path": "outputs/study-20261003/baseline-train-dev.json",
+      "episodes": 2890,
+      "sr_percent": 97.82006920415225,
+      "spl_percent": 96.41681025307211,
+      "rollout_seconds": 407.9745980360003,
+      "cuda_peak_allocated_bytes": 744403968,
+      "gpu": "Tesla T4",
+      "scope": "seen adapter development; not an official val-unseen result"
+    },
+    "val_unseen_completed_report": {
+      "path": "outputs/study-20261003/baseline-val-unseen.json",
+      "sha256": "32e4b21422a86c2b8a7e81eb1b423b903ac19cf25972d450c003bdd33d57cd61",
+      "episodes": 2349,
+      "metrics": {
+        "action_steps": 6.201787994891443,
+        "steps": 7.274584929757344,
+        "lengths": 13.941083903623078,
+        "nav_error": 3.3123890496651125,
+        "oracle_error": 1.804886685424781,
+        "sr": 71.51979565772669,
+        "oracle_sr": 80.54491272882078,
+        "spl": 60.409849847319485,
+        "nDTW": 67.0205317038318,
+        "SDTW": 58.05864915455231,
+        "CLS": 65.80799135449527
+      },
+      "resources": {
+        "rollout_seconds": 392.9180818040004,
+        "cuda_peak_allocated_bytes": 745100800,
+        "cuda_peak_reserved_bytes": 817889280
+      },
+      "scope": "official unseen-scene validation development, not blind test"
+    }
+  },
+  "evaluation_protocol": {
+    "version": 2,
+    "audit": "docs/protocol_audit_20261003.md",
+    "revision_reason": "Full train_dev baseline is near saturation on scenes included in the official base-model training recipe",
+    "parameter_fitting_split": "train_fit",
+    "adapter_development_split": "train_dev",
+    "unseen_development_split": "val_unseen",
+    "unseen_development_label_policy": "analysis and model selection only; no optimizer fitting, training normalization, or supervised cache fitting on validation labels",
+    "pilot_max_variants": 12,
+    "pilot_seed": 0,
+    "variant_definition": "method/objective/hyperparameter configuration; changed configuration gets a new ID; every checkpoint evaluation is a separate recorded access",
+    "pilot_checkpoint_evaluations_per_variant": 3,
+    "access_logging": "record each evaluation and new result-driven diagnostic analysis with purpose, config/checkpoint hashes, split and subset IDs, metrics, cost, and decision",
+    "access_ledger_target": "outputs/study-20261003/val-unseen-access-ledger.jsonl",
+    "access_ledger_status": "Standalone append-only ledger implemented and tested; existing V0001 imported read-only and counts as 1 of 12 pilot variants; evaluation-launch integration pending before method training.",
+    "budget_revision_policy": "document evidence and revised limits before additional variants; never erase previous accesses",
+    "confirmatory_validation": "freeze method and core ablation list, then report seeds 0/1/2 on full val_unseen under a separately recorded budget",
+    "final_test_candidate": "test_unseen",
+    "test_account_and_submission_status": "unverified",
+    "test_export_code_status": "not yet implemented in the project wrapper",
+    "test_submission_plan": "after method freeze and concrete artifact review, consider one baseline and one method submission; default fixed seed 0; no test-driven seed selection",
+    "test_submission_review_required": true,
+    "test_unavailable_policy": "report validation-development exposure and limits explicitly; do not relabel val_unseen as a blind test",
+    "execution_sync_status": "Training pipeline still selects train_dev; official val_unseen selection will use explicit registered accesses, not unbounded per-epoch evaluation.",
+    "pilot_baseline_counts_as_variant": true
+  },
+  "primary_hypothesis": "Different source observations of an unvisited candidate contain useful decision information lost by mean aggregation; arrival-based supervision provides an incremental, deployable benefit beyond source attention trained with navigation labels.",
+  "known_risks": [
+    "Default DUET normally never repeats a decision source; repeated-source overcounting cannot be the main motivation.",
+    "Pano candidate features already contain panorama context and are not raw single-view visual descriptors.",
+    "Replacing a historical unvisited-node proxy with a future panorama may introduce an out-of-distribution perturbation.",
+    "Natural arrivals are selected by the baseline policy and are not an unbiased sample of all candidates.",
+    "Future-view auxiliary supervision already exists in prior work; a general future-supervision claim is insufficient.",
+    "The base checkpoint has seen R2R training scenes and was selected using val_unseen SPL; adapter-held-out train scenes are not base-unseen scenes."
+  ],
+  "stages": [
+    {
+      "id": "B0",
+      "purpose": "full seen adapter-development train_dev baseline",
+      "status": "completed",
+      "report": "outputs/study-20261003/baseline-train-dev.json",
+      "limit": null,
+      "max_seconds": 5400
+    },
+    {
+      "id": "B1",
+      "purpose": "official full val_unseen development baseline after protocol and access-ledger setup",
+      "status": "completed",
+      "limit": null,
+      "report": "outputs/study-20261003/baseline-val-unseen.json"
+    },
+    {
+      "id": "D0",
+      "purpose": "cross-scene read-only observer parity and replay identity",
+      "status": "passed_on_T4",
+      "target_episodes": 16,
+      "episodes": 16,
+      "scans": 8,
+      "states": 96,
+      "trajectory_and_episode_metric_parity": true,
+      "max_identity_replay_error": 0.0
+    },
+    {
+      "id": "D1",
+      "purpose": "source coverage and natural-arrival pairing",
+      "status": "collection_complete",
+      "target_train_decisions": 1000,
+      "max_candidate_sources": 15,
+      "train_episodes": 193,
+      "train_scans": 49,
+      "train_states": 1139,
+      "dev_episodes": 96,
+      "dev_scans": 12,
+      "dev_states": 599
+    },
+    {
+      "id": "D2",
+      "purpose": "counterfactual replay and adapter-held-out scene probes; unseen transfer assessed separately on logged val_unseen development accesses",
+      "status": "completed_no_promotion",
+      "future_labels_in_policy": false,
+      "report": "outputs/study-20261003/d1-probe-analysis.json",
+      "allowed_extension": "configs/branch_extension.json",
+      "branch_report": "outputs/study-20261003/d1-branch-probe-analysis.json",
+      "decision": "outputs/study-20261003/d2-branch-decision.json"
+    },
+    {
+      "id": "M0",
+      "purpose": "mean versus source-set aggregation crossed with absent versus present arrival supervision; only if diagnosis supports the hypothesis",
+      "status": "not_started_arrival_margin_promotion_gate_not_met"
+    },
+    {
+      "id": "M1",
+      "purpose": "full navigation development and matched controls"
+    },
+    {
+      "id": "F0",
+      "purpose": "frozen method and ablations, three seeds on full val_unseen, transfer, possible reviewed blind-test submissions, paper materials"
+    }
+  ],
+  "promotion_criteria": [
+    "Confirm coverage on unmodified baseline trajectories with explicit denominators.",
+    "Show held-out information beyond scores and geometry; reject effects explained by shuffled targets or representation norm/orientation alone.",
+    "Show usefulness of currently observable source features or cross-fitted predicted auxiliary labels.",
+    "Beat matched source-attention and mean-with-arrival controls in full navigation without material SPL degradation.",
+    "Require reproducibility across seeds and a second benchmark or backbone before claiming the paper-sized study complete."
+  ],
+  "diagnosis_stop_conditions": [
+    "Do not use repeated-source overcounting as the main hypothesis; retain its count only as a data-integrity diagnostic under the default protocol.",
+    "Stop or revise if multi-source coverage is too sparse to account for navigation errors.",
+    "If held-out gains disappear under geometry, shuffled-arrival, or norm controls, do not promote the auxiliary target as reliability supervision.",
+    "If evidence remains inconclusive, allow one documented sample expansion before choosing a new hypothesis."
+  ],
+  "parallel_alternative_audit": "One pre-registered CPU stopping opportunity table from existing D1 training-scene states; configs/stopping_diagnostic.json; no model fitting or new official-validation access.",
+  "persistence": {
+    "drive_root": "/content/drive/MyDrive/VLN-Research/studies/arrival-evidence-20261003",
+    "checkpoint_policy": "configs/pipeline.json",
+    "code_sync_excludes": [
+      "datasets",
+      ".venv",
+      "build",
+      "credentials"
+    ]
+  },
+  "primary_hypothesis_status": "insufficient_positive_evidence_do_not_train_this_auxiliary_target",
+  "next_hypothesis": "Stopping opportunity and comparable history scoring: diagnosis only; novelty not established."
+}

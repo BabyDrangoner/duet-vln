@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "experiment_id": "E1-common-pool-endpoint-C1",
+  "arm": "C1",
+  "specified_before_training": true,
+  "controls_report_sha256": "3465e67732d795b1e2b1a29522fa4f567b785279edeb8223fc8dfad628e2e1f6",
+  "source_selection_seed": 20261003,
+  "model_collection_seed": 0,
+  "train_pairs": 512,
+  "dev_pairs": 128,
+  "feature_schema": "concat_global_local_stop_crossmodal_v1",
+  "architecture": {
+    "input_dim": 1536,
+    "hidden_dim": 128,
+    "activation": "ReLU",
+    "output_dim": 1
+  },
+  "optimizer": {
+    "name": "AdamW",
+    "lr": 0.001,
+    "weight_decay": 0.0001
+  },
+  "epochs": 20,
+  "batch_groups": 8,
+  "monitor_every_epochs": 5,
+  "allowed_training_seeds": [
+    0,
+    1,
+    2
+  ],
+  "natural_weight": 0.5,
+  "augmentation_weight": 0.5,
+  "pair_weight": 0.0,
+  "primary_checkpoint": "fixed_final_epoch",
+  "engineering_best_monitor": "equal_mean_of_natural_c2_paired_dev_episode_bce",
+  "policy": "keep original movement and online termination; rank actually observed historical endpoints using each visit prefix logit; charge full return path",
+  "fit_split": "train_fit",
+  "monitor_split": "train_dev",
+  "label_scope": "original instruction own goal distance <3m; not full instruction completion",
+  "training_budget": "1280 optimizer updates; same original path pool and group order. C3/M also use identical complete data; actual state counts across C1/C2/C3 may differ.",
+  "head_input": "frozen1536_STOP_tokens_only",
+  "validation": "separate full-split access must be registered after training; no automatic val execution"
+}

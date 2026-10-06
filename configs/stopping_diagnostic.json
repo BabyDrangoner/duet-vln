@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "diagnostic_id": "S0-fixed-trajectory-stopping",
+  "registered_utc": "2026-10-03T06:36:13.102292+00:00",
+  "status": "specified_before_stopping_score_analysis",
+  "purpose": "One CPU opportunity audit of an alternative hypothesis using already collected training-scene states; no fitting and no method promotion from this table alone.",
+  "collections": {
+    "train_fit": "c7b1a8ce3940f3bc29958a173ddc01eb8630287ed906092b4b9256722d4a1223",
+    "train_dev": "019b63425176ee7e545543137e134e476b15b59823b26e7ea1a6c627d98f68fa"
+  },
+  "sampling": "All saved episodes and all decision states, including forced terminal states; no outcome-dependent filtering.",
+  "access_scope": [
+    "train_fit",
+    "train_dev"
+  ],
+  "new_gpu_collection": false,
+  "fitting": false,
+  "navigation_changes": false,
+  "score_rules": [
+    "original_history_softmax_stop",
+    "last_decision_location",
+    "raw_stop_logit",
+    "stop_minus_max_move",
+    "stop_minus_logmeanexp_move"
+  ],
+  "undefined_move_comparisons": "For states with no valid movement alternative, report missing and exclude the whole episode only from that score-specific result; retain all episodes in main opportunity table.",
+  "main_outputs": [
+    "history_selection_matches_stored_final_endpoint",
+    "baseline_and_last_location_success",
+    "fallback_rescues_and_damages",
+    "success_available_in_actually_observed_history",
+    "extra_return_distance",
+    "termination_flags",
+    "fixed_score_final_endpoint_success_and_return_cost"
+  ],
+  "path_cost": "Preserve full executed prefix and append discovered-graph return distance from final decision point. Cross-check baseline length with official per-episode report. Never truncate prefix.",
+  "spl": "Use official GT reference-path length only if available and verified; no substitution of start-goal shortest distance. Otherwise counterfactual SPL is missing.",
+  "oracle_scope": "Actual recorded decision observations only; passed intermediate nodes are excluded from oracle candidates.",
+  "known_before_audit": {
+    "train_dev_full_final_failures": 63,
+    "train_dev_full_oracle_success_but_final_failure": 34,
+    "d1_dev_expected_final_failures": 2,
+    "d1_dev_expected_oracle_success_but_final_failure": 1,
+    "caveat": "D1 expected counts came from joining selection IDs to existing baseline and require episode trajectory/metric parity before reuse; OSR may include intermediate unobserved nodes."
+  },
+  "stopping_rule": "A descriptive opportunity table, with at most this one fixed D1 analysis. Sparse independent failures are insufficient evidence; do not train or claim new novelty merely because a zero-training score changes outcomes."
+}

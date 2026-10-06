@@ -1,0 +1,68 @@
+{
+  "schema": "e3_continuation_probe_v1",
+  "status": "frozen_before_new_training_only_rollouts",
+  "seed": 0,
+  "asset_pins": {
+    "base_checkpoint_sha256": "c1ed3ed27e1acbffec1fa81fbdd06e16498398809a7f80f349043ba74c21ba94",
+    "feature_sha256": "ae0ff208349e6a12096fe47c7b045e42b93e9c047da50d19dd17e04ec8d31bbc",
+    "train_annotation_sha256": "8ffdfd5a5c5efeef56af7883ebac28d854a64161f1d0a3d0e52ba75086b726b8",
+    "connectivity_sha256": "ef4a536632ad2d76b94c5b7ee41fffcc470a33844f7e7a9ca048739cdaa7d6af"
+  },
+  "target": {
+    "reference": "original frozen DUET on full R2R val_unseen",
+    "sr_gain_percentage_points_min": 5.0,
+    "spl_gain_percentage_points_min": 0.0,
+    "baseline_sr_percent": 71.51979565772669,
+    "baseline_spl_percent": 60.409849847319485,
+    "baseline_successes": 1680,
+    "episodes": 2349,
+    "target_successes_min": 1798,
+    "net_rescues_min": 118,
+    "validation_report_sha256": "32e4b21422a86c2b8a7e81eb1b423b903ac19cf25972d450c003bdd33d57cd61"
+  },
+  "probe": {
+    "allowed_splits": ["train_fit", "train_dev"],
+    "instruction_count_per_split": 64,
+    "engineering_smoke_instruction_count_per_split": 2,
+    "selection": "scene_stratified",
+    "conditions": ["natural", "perturb_step2"],
+    "state_steps": {
+      "natural": [0, 3, "terminal"],
+      "perturb_step2": [3, 6, "terminal"]
+    },
+    "perturbed_states_min_step": 3,
+    "perturbation": "same label-free SHA selection of a legal nonSTOP nonargmax action at zero-index step 2 as E2; retain unapplied cases",
+    "early_terminal": "retain original trajectory; perturb condition terminal before step 3 has no intervention states",
+    "candidate_rule": "original executed action, top two finite legal nonbaseline nonSTOP actions ordered by descending original logit then viewpoint ID, and STOP; deduplicate",
+    "forced_terminal": "when no_vp_left or decision step 14, executed action is STOP and moving candidates are prohibited",
+    "continuation": "replay exact executed prefix; force candidate once; thereafter unmodified frozen DUET without further external perturbation",
+    "stop_semantics": "original DUET STOP and discovered-graph historical return; preserve unmodified STOP probabilities even when forcing action",
+    "max_action_len": 15,
+    "baseline_anchor_check": "replay every selected state's original-action branch; compare full path and metrics with original condition trajectory",
+    "prefix_check": "compare viewpoint, candidate identities, legal masks and original logits before action replacement",
+    "label_policy": "ground truth and future branch observations used only after rollout for outcomes; unavailable to candidate/state selection or policy input",
+    "metric_policy": "existing pinned DUET evaluator on complete executed path including intermediate edges and historical return",
+    "max_branches_per_state": 4,
+    "max_conditions_per_instruction": 2,
+    "max_selected_states_per_condition": 3,
+    "max_reference_rollouts": 256,
+    "max_branch_rollouts": 3072,
+    "adaptive_expansion": false,
+    "train_model": false,
+    "official_validation_access": false
+  },
+  "report": {
+    "unit": "original instruction; report splits and conditions separately; aggregate original instruction union only with explicit deduplication",
+    "outcomes": ["baseline SR and SPL", "rescuable failed instructions", "harmful branch coverage", "candidate branches", "actual perturbation rate", "scene coverage", "label-only best achievable SR with per-instruction nondecreasing SPL", "runtime", "memory"],
+    "oracle_warning": "a hindsight opportunity bound on selected training-scene states; never a learned method result or prediction of unseen SR",
+    "decision": "use this finite probe to decide whether action/label collection merits a larger training experiment; no automatic +5 claim from perturbation recovery"
+  },
+  "persistence": {
+    "atomic_per_branch": true,
+    "drive_readback_sha256_before_acknowledgment": true,
+    "resume_requires_same_source_assets_config_selection": true,
+    "retain_small_jsons_locally": true,
+    "exclude_datasets_from_local_delivery": true,
+    "stop_on_missing_drive": true
+  }
+}

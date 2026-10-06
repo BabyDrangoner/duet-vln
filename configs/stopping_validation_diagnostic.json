@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "diagnostic_id": "S1-full-validation-stop-trace",
+  "registered_utc": "2026-10-03T06:43:32.304904+00:00",
+  "status": "specified_before_new_val_unseen_trace_generation_or_error_analysis",
+  "reason": "S0 confirms D1 train/dev is near saturation and contains 0/1 observed-history recoverable failures, insufficient for mechanism validation. Diagnose actual frozen-baseline unseen-scene behavior under explicitly bounded development access.",
+  "split": "val_unseen",
+  "episodes": 2349,
+  "seed": 0,
+  "baseline_report": "outputs/study-20261003/baseline-val-unseen.json",
+  "baseline_report_sha256": "32e4b21422a86c2b8a7e81eb1b423b903ac19cf25972d450c003bdd33d57cd61",
+  "base_checkpoint_sha256": "c1ed3ed27e1acbffec1fa81fbdd06e16498398809a7f80f349043ba74c21ba94",
+  "sampling": "Full official split, all original baseline decision states, no result-dependent subsets.",
+  "mode": "Read-only lightweight observer; frozen original DUET, no trained head or action change.",
+  "parity_gate": "Exact per-instruction complete trajectories and all official per-episode metrics against existing full baseline; refuse interpretation if any differ.",
+  "cache": "Small CPU decision statistics and discovered-graph distances; goal labels isolated and analysis_only; no visual/text feature arrays.",
+  "analysis": "Same fixed S0 opportunity counts and zero-training endpoint scores. Include forced terminal states and full executed prefix plus final return cost.",
+  "metrics": [
+    "fallback_rescue_count",
+    "fallback_harm_count",
+    "actually_observed_history_success_but_final_failure",
+    "last_position_success",
+    "original_history_probability_success",
+    "raw_stop_success",
+    "max_margin_success",
+    "logmeanexp_margin_success",
+    "return_distance",
+    "termination_flags",
+    "independent_paths_and_scenes_for_opportunity_counts"
+  ],
+  "oracle_scope": "Only actual decision observations; no unobserved intermediate nodes.",
+  "spl": "Do not substitute start-goal shortest distance for GT path length; if reference path length is missing, counterfactual SPL remains missing.",
+  "excluded_claims": [
+    "blind test",
+    "validation-supervised training",
+    "causal action-count bias",
+    "new method established",
+    "online continuation benefit"
+  ],
+  "subsequent_action": "Assess whether a distributed opportunity exists and whether simple known scores already explain it. Any learned policy requires training-only data, strong goal-classifier/value-head controls, a separate fixed method configuration, and registered full navigation evaluation. No further adaptive score search on this report."
+}
