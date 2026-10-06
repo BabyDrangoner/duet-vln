@@ -376,3 +376,104 @@ def test_branch_stop_after_intervention_keeps_prefix_raw_probability():
     branch['terminal_stop_scores'][ref['states'][0]['viewpoint']] = 1.
     with pytest.raises(ValueError, match='prefix raw STOP'):
         audit.audit_branch(branch, ref, ref['metrics'], branch['metrics'], {})
+
+
+def merged_fixture(tmp_path):
+    root = tmp_path/'project'; root.mkdir(); (root/'scripts').mkdir()
+    (root/'scripts/merge_continuation_v2.py').write_text('frozen merger source\n')
+    subprocess.run(['git', 'init', '-q', str(root)], check=True)
+    subprocess.run(['git', '-C', str(root), 'add', '.'], check=True)
+    subprocess.run(['git', '-C', str(root), '-c', 'user.name=Test', '-c', 'user.email=test@example.invalid',
+                    'commit', '-qm', 'fixture'], check=True)
+    full = ['1_0', '2_0', '3_0', '4_0']; truth = {instr: ('scene'+instr, ['a', 'b']) for instr in full}
+    source_manifests, pointers, source_roots = {}, [], []
+    for index in range(2):
+        local = root/'shards'/f'shard-{index}'; backup = tmp_path/'backup'/f'shard-{index}'
+        for directory in (local, backup):
+            (directory/'tasks').mkdir(parents=True); (directory/'bundles').mkdir()
+        ids = full[index::2]
+        selection = {'split': 'train_fit', 'instr_ids': ids, 'scan_ids': sorted(truth[i][0] for i in ids),
+            'count': len(ids), 'full_instr_ids': full, 'shard_count': 2, 'shard_index': index,
+            'conditions': list(audit.SCHEDULES), 'smoke': True, 'seed': 0, 'selection': 'scene_stratified'}
+        manifest = {'schema': audit.SCHEMA, 'complete': True, 'selection': selection,
+                    'provenance': {'source': 'fixed'}, 'backup_root': str(backup), 'bundles': []}
+        identity = {'schema': audit.SCHEMA, 'selection': selection, 'provenance': manifest['provenance']}
+        journal = {'schema': 'e3_continuation_probe_tasks_v1', 'identity': identity,
+                   'identity_sha256': audit.objsha(identity), 'tasks': {}, 'complete': True}
+        for instr in ids:
+            for condition in audit.SCHEDULES:
+                task = {'instr_id': instr, 'condition': condition}; key = audit.objsha(task)
+                raw = f'immutable tensor bytes for {instr}, {condition}'.encode()
+                digest = audit.hashlib.sha256(raw).hexdigest(); name = f'bundle-{key}-{digest[:16]}.pt'
+                pointer = {'task': task, 'file': name, 'sha256': digest, 'bytes': len(raw), 'records': 1}
+                manifest['bundles'].append(pointer)
+                record = {'status': 'complete', 'identity_sha256': audit.objsha(identity),
+                          'task': task, 'result': {k: v for k, v in pointer.items() if k != 'task'}}
+                record['payload_sha256'] = audit.objsha(record); record_raw = json.dumps(record).encode()
+                journal['tasks'][key] = {'file': f'task-{key}.json', 'sha256': audit.hashlib.sha256(record_raw).hexdigest()}
+                for directory in (local, backup):
+                    (directory/'bundles'/name).write_bytes(raw)
+                    (directory/'tasks'/f'task-{key}.json').write_bytes(record_raw)
+        for directory in (local, backup):
+            (directory/'tasks/manifest.json').write_text(json.dumps(journal))
+            (directory/'dataset-manifest.json').write_text(json.dumps(manifest))
+        pointers.extend(manifest['bundles']); source_roots.append(local)
+        source_manifests[str(local.relative_to(root))] = audit.sha(local/'dataset-manifest.json')
+    local, backup = root/'merged', tmp_path/'backup/merged'
+    local.mkdir(); backup.mkdir()
+    for directory in (local, backup): (directory/'bundles').mkdir()
+    selection = dict(selection, instr_ids=full, scan_ids=sorted(t[0] for t in truth.values()),
+                     count=len(full), shard_count=1, shard_index=0)
+    merged = dict(manifest, selection=selection, backup_root=str(backup),
+        bundles=sorted(pointers, key=lambda p: (p['task']['instr_id'], p['task']['condition'])),
+        merge_provenance={'source_sha256': audit.sha(root/'scripts/merge_continuation_v2.py'), 'shard_manifests': source_manifests})
+    for pointer in merged['bundles']:
+        original = next(r/'bundles'/pointer['file'] for r in source_roots if (r/'bundles'/pointer['file']).exists())
+        for directory in (local, backup): (directory/'bundles'/pointer['file']).write_bytes(original.read_bytes())
+    return root, local, backup, merged, truth
+
+
+def test_merged_cache_uses_original_verified_journal_chain_and_accepts_alphabetical_condition_order(tmp_path):
+    args = merged_fixture(tmp_path)
+    assert not (args[1]/'tasks').exists()
+    assert args[3]['bundles'][0]['task']['condition'] == 'early_two'
+    result = audit.verify_collection_chain(*args)
+    assert result['kind'] == 'derived_merge_chain'
+    assert result['source_bundles'] == 16
+    assert result['synthetic_merged_journal'] is False
+    assert result['original_journals_verified']
+    assert [row['shard_index'] for row in result['shards']] == [0, 1]
+
+
+@pytest.mark.parametrize('defect,match', [
+    ('missing_source', 'missing or duplicate source shard'),
+    ('missing_bundle', 'coverage differs'), ('duplicate_bundle', 'duplicate tasks'),
+    ('pointer', 'pointer set differs'), ('source_sha', 'source shard manifest SHA'),
+    ('merger_sha', 'merger source SHA'), ('source_bytes', 'checksum differs'),
+    ('source_backup_bytes', 'checksum differs'), ('source_journal', 'checksum differs'),
+    ('duplicate_source_path', 'duplicate or recursive'), ('selection', 'merged selection differs')])
+def test_merged_cache_rejects_missing_duplicate_or_rewritten_sources(tmp_path, defect, match):
+    args = merged_fixture(tmp_path); root, _, _, merged, _ = args
+    provenance = merged['merge_provenance']; source_names = list(provenance['shard_manifests'])
+    first = root/source_names[0]; original = json.loads((first/'dataset-manifest.json').read_text())
+    if defect == 'missing_source': provenance['shard_manifests'].pop(source_names[-1])
+    elif defect == 'missing_bundle': merged['bundles'].pop()
+    elif defect == 'duplicate_bundle': merged['bundles'].append(copy.deepcopy(merged['bundles'][0]))
+    elif defect == 'pointer': merged['bundles'][0]['records'] += 1
+    elif defect == 'source_sha': provenance['shard_manifests'][source_names[0]] = '1'*64
+    elif defect == 'merger_sha': provenance['source_sha256'] = '1'*64
+    elif defect == 'source_bytes': (first/'bundles'/original['bundles'][0]['file']).write_bytes(b'changed')
+    elif defect == 'source_backup_bytes': (Path(original['backup_root'])/'bundles'/original['bundles'][0]['file']).write_bytes(b'changed')
+    elif defect == 'source_journal': (first/'tasks/manifest.json').write_text('{}')
+    elif defect == 'duplicate_source_path': provenance['shard_manifests'][str(first)] = provenance['shard_manifests'][source_names[0]]
+    elif defect == 'selection': merged['selection']['scan_ids'].pop()
+    with pytest.raises(ValueError, match=match): audit.verify_collection_chain(*args)
+
+
+def test_merged_tensor_bytes_remain_verified_after_original_chain_passes(tmp_path):
+    root, local, backup, merged, truth = merged_fixture(tmp_path)
+    audit.verify_collection_chain(root, local, backup, merged, truth)
+    pointer = merged['bundles'][0]
+    (local/'bundles'/pointer['file']).write_bytes(b'changed merged bytes')
+    with pytest.raises(ValueError, match='checksum differs'):
+        audit.read_bundle(local/'bundles', backup/'bundles', pointer)

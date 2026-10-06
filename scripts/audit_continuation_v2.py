@@ -384,6 +384,99 @@ def verify_journal(directory, backup, manifest):
     return {'sha256': sha(path), 'tasks': len(expected_keys), 'both_copies_verified': True}
 
 
+
+def task_inventory(manifest):
+    selection = manifest['selection']
+    expected = {(instr, condition) for instr in selection['instr_ids'] for condition in SCHEDULES}
+    actual = [(pointer['task']['instr_id'], pointer['task']['condition']) for pointer in manifest['bundles']]
+    require(len(actual) == len(expected) and set(actual) == expected,
+            'complete instruction-condition coverage differs or contains duplicate tasks')
+    return {key: pointer for key, pointer in zip(actual, manifest['bundles'])}
+
+
+def verify_merger_source(root, digest):
+    name = 'scripts/merge_continuation_v2.py'
+    require(isinstance(digest, str) and re.fullmatch(r'[0-9a-f]{64}', digest), 'invalid merger source SHA')
+    if sha(root/name) == digest:
+        return {'file': name, 'sha256': digest, 'status': 'current_file_matches'}
+    revisions = subprocess.run(['git', '-C', str(root), 'log', '--all', '--format=%H', '--', name],
+                               check=True, capture_output=True, text=True).stdout.splitlines()
+    for commit in revisions:
+        result = subprocess.run(['git', '-C', str(root), 'show', f'{commit}:{name}'], capture_output=True)
+        if result.returncode == 0 and hashlib.sha256(result.stdout).hexdigest() == digest:
+            return {'file': name, 'sha256': digest, 'status': 'historical_file_matches', 'commit': commit}
+    raise ValueError('merger source SHA has no matching current or historical implementation')
+
+
+def verify_collection_chain(root, directory, backup, manifest, truth):
+    """Derived caches retain the real shard journals instead of inventing one."""
+    merged = task_inventory(manifest)
+    if 'merge_provenance' not in manifest:
+        return dict(verify_journal(directory, backup, manifest), kind='original_collection_journal')
+    merge = manifest['merge_provenance']
+    require(set(merge) == {'source_sha256', 'shard_manifests'}, 'merge provenance inventory differs')
+    merger = verify_merger_source(root, merge['source_sha256'])
+    sources = merge['shard_manifests']
+    require(isinstance(sources, dict) and 1 <= len(sources) <= 4, 'empty or invalid merge source inventory')
+    manifests, journals, paths = [], [], set()
+    source_pointers = {}
+    for location, digest in sources.items():
+        require(isinstance(location, str) and location, 'invalid source shard location')
+        source = (root/Path(location)).resolve()
+        require(source not in paths and source not in (directory, backup), 'duplicate or recursive source shard location')
+        paths.add(source)
+        source_manifest = safe_file(source, 'dataset-manifest.json')
+        require(sha(source_manifest) == digest, 'source shard manifest SHA differs')
+        original = read(source_manifest)
+        require(original.get('schema') == SCHEMA and original.get('complete') is True
+                and 'merge_provenance' not in original, 'merge source is not an original completed shard')
+        original_backup = Path(original['backup_root'])
+        require(original_backup.is_absolute(), 'source shard backup root must be absolute')
+        original_backup = original_backup.resolve()
+        require(original_backup != source and not source.is_relative_to(original_backup)
+                and not original_backup.is_relative_to(source), 'source shard backup overlaps local collection')
+        verified_pair(source, original_backup, 'dataset-manifest.json', digest)
+        require(original['provenance'] == manifest['provenance'], 'source shard collection provenance differs')
+        pointers = task_inventory(original)
+        require(not set(source_pointers).intersection(pointers), 'duplicate instruction-condition across source shards')
+        journal = verify_journal(source, original_backup, original)
+        for pointer in pointers.values():
+            # The derived manifest must point to the exact original serialized
+            # bytes. Never load/re-save or repair any source/cache object here.
+            verified_pair(source/'bundles', original_backup/'bundles', pointer['file'], pointer['sha256'], pointer['bytes'])
+        source_pointers.update(pointers)
+        selection = original['selection']
+        require(selection['count'] == len(selection['instr_ids'])
+                and all(instr in truth for instr in selection['instr_ids'])
+                and selection['scan_ids'] == sorted({truth[instr][0] for instr in selection['instr_ids']}),
+                'source shard instruction/scene inventory differs')
+        require(sha(source_manifest) == digest == sha(original_backup/'dataset-manifest.json'), 'source manifest changed while auditing')
+        manifests.append(original)
+        journals.append({'root': str(source), 'dataset_manifest_sha256': digest, 'journal': journal,
+                         'shard_index': selection['shard_index'], 'instructions': len(selection['instr_ids'])})
+    first = manifests[0]['selection']; full = first['full_instr_ids']; count = first['shard_count']
+    require(type(count) is int and 1 <= count <= 4 and len(manifests) == count
+            and {m['selection']['shard_index'] for m in manifests} == set(range(count)), 'missing or duplicate source shard indices')
+    require(isinstance(full, list) and full and full == sorted(set(full)), 'invalid full source instruction inventory')
+    seen = set()
+    for original in manifests:
+        selection = original['selection']; index = selection['shard_index']; ids = selection['instr_ids']
+        require(type(index) is int and selection['shard_count'] == count and selection['full_instr_ids'] == full
+                and all(selection[k] == first[k] for k in ('split', 'conditions', 'smoke', 'seed', 'selection')),
+                'source shard selection identity differs')
+        require(ids == full[index::count] and not seen.intersection(ids), 'source shards are not the fixed disjoint instruction partition')
+        seen.update(ids)
+    require(seen == set(full), 'source shards miss full instruction inventory')
+    expected_selection = dict(first, instr_ids=full, count=len(full), shard_count=1, shard_index=0,
+                              scan_ids=sorted({scan for m in manifests for scan in m['selection']['scan_ids']}))
+    require(manifest['selection'] == expected_selection, 'merged selection differs from complete source shards')
+    require(merged == source_pointers, 'merged pointer set differs from source shard pointers')
+    return {'kind': 'derived_merge_chain', 'status': 'passed', 'merger_source': merger,
+            'shards': sorted(journals, key=lambda item: item['shard_index']),
+            'source_bundles': len(source_pointers), 'source_bundle_copies_verified': True,
+            'original_journals_verified': True, 'synthetic_merged_journal': False}
+
+
 def verify_source(root, provenance):
     source = provenance['source_files']
     require(set(source) == set(COLLECTOR_FILES) and objsha(source) == provenance['source_sha256'], 'source provenance inventory/digest differs')
@@ -447,9 +540,7 @@ def audit(root, dataset_manifest, experiment, config):
     for name, identities in upstream['files'].items():
         require(not Path(name).is_absolute() and '..' not in Path(name).parts, 'unsafe upstream path')
         require(sha(root/'third_party/VLN-DUET'/name) == identities['prepared'], 'prepared upstream source differs: '+name)
-    expected_tasks = [{'instr_id': i, 'condition': c} for i in selection['instr_ids'] for c in SCHEDULES]
-    require([p['task'] for p in manifest['bundles']] == expected_tasks, 'complete instruction-condition coverage/order differs')
-    journal = verify_journal(directory, backup, manifest)
+    journal = verify_collection_chain(root, directory, backup, manifest, truth)
     errors, rows = {}, []
     for pointer in manifest['bundles']:
         bundle = read_bundle(directory/'bundles', backup/'bundles', pointer)
