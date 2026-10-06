@@ -4,6 +4,8 @@
 
 源码仓库：[BabyDrangoner/duet-vln](https://github.com/BabyDrangoner/duet-vln)。从 2026-10-06 起，实验迁移到局域网机器的 WSL，环境准备和启动命令见 [WSL 运行手册](docs/wsl.md)。后续运行使用 Git 提交标识，数据和模型按固定 SHA 下载到被忽略的 `datasets/`。
 
+WSL 迁移验收已通过：881 项测试、48 项子测试，以及离线导航和 GPU 断点恢复。实测显卡为 RTX 4060 Laptop 8 GiB；[验收证据](results/wsl/20261006/README.md)已随 Git 保存。
+
 最新实验汇总收录在 [results/](results/README.md)，设计与审计代码随源码提交。完整轨迹、训练缓存和检查点保留为独立实验产物；历史文档中指向 `outputs/` 的链接通常需要本地归档。验证访问账本仍保留原路径并纳入 Git，迁移不重置已使用的访问预算。
 
 ## 当前目标与状态

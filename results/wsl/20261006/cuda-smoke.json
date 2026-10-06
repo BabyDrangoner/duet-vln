@@ -1,0 +1,8 @@
+{
+  "torch": "2.5.1+cu121",
+  "cuda": "12.1",
+  "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "gpu_bytes": 8585216000,
+  "cuda_arithmetic": true,
+  "mattersim_constructed": true
+}

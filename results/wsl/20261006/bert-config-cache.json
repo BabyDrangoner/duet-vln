@@ -1,0 +1,5 @@
+{
+  "config": "bert-base-uncased",
+  "hidden_size": 768,
+  "cached_offline_load_passed": true
+}

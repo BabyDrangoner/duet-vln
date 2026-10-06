@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-06",
+  "status": "passed",
+  "purpose": "WSL engineering migration acceptance; not a navigation improvement experiment",
+  "tested_code_commit": "d031a8d1692aa0ce36d651a0b70843d5051b290c",
+  "git_remote": "git@github.com:BabyDrangoner/duet-vln.git",
+  "deployment": {
+    "ssh_host": "192.168.0.100",
+    "ssh_port": 2222,
+    "ssh_user": "xxl",
+    "repository": "/home/xxl/projects/duet-vln",
+    "backup_root": "/home/xxl/vln-backups",
+    "backup_scope": "same WSL ext4 disk; no automatic cloud replication configured"
+  },
+  "runtime": {
+    "torch": "2.5.1+cu121",
+    "cuda": "12.1",
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "gpu_bytes": 8585216000,
+    "cuda_arithmetic": true,
+    "mattersim_constructed": true,
+    "python": "3.11.16",
+    "distribution": "Ubuntu 24.04.3 on WSL2"
+  },
+  "tests": {
+    "passed": 881,
+    "subtests_passed": 48,
+    "seconds": 110.61,
+    "pip_check": "passed"
+  },
+  "assets": {
+    "status": "verified",
+    "manifest_sha256": "d2bc7d258eb4bd43420ccafe2c78fb0f65d518c2cedd7d779b216523f6082692",
+    "files": 5,
+    "connectivity_files": 92,
+    "navigation_graph_files": 90
+  },
+  "offline_acceptance": {
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
+    "proxy_environment_variables": "unset",
+    "bert_config_cached": true,
+    "command_record": "acceptance-job.sh",
+    "stages": [
+      {
+        "stage": "asset_verification",
+        "exit_code": 0
+      },
+      {
+        "stage": "navigation_identity",
+        "exit_code": 0
+      },
+      {
+        "stage": "collect_resume_cache",
+        "exit_code": 0
+      },
+      {
+        "stage": "cuda_resume",
+        "exit_code": 0
+      }
+    ]
+  },
+  "navigation_identity": {
+    "split": "train_fit",
+    "episodes": 2,
+    "zero_residual_trajectory_identity": true,
+    "resources": {
+      "rollout_seconds": 0.46602625499872374,
+      "cuda_peak_allocated_bytes": 762039296,
+      "cuda_peak_reserved_bytes": 849346560
+    }
+  },
+  "cache_collection": {
+    "split": "train_fit",
+    "episodes": 8,
+    "resources": {
+      "rollout_seconds": 1.3511451300000772,
+      "cuda_peak_allocated_bytes": 762260992,
+      "cuda_peak_reserved_bytes": 849346560
+    }
+  },
+  "resume": {
+    "status": "passed",
+    "paused_step": 3,
+    "killed_step": 6,
+    "final_step": 12,
+    "exact_cuda_training_state_match": true,
+    "compared_state_fields": [
+      "head",
+      "optimizer",
+      "history",
+      "global_step",
+      "epoch",
+      "record_cursor",
+      "epoch_totals"
+    ],
+    "validation_epochs": 2,
+    "validation_split": "train_dev",
+    "validation_subset_episodes": 8,
+    "best_checkpoint_verified": true,
+    "snapshot_retention_verified": true,
+    "backup_verification": "filesystem-mount-readback-sha256"
+  },
+  "historical_archives": [
+    {
+      "file": "e2-loop-v1-code-and-results.tar.gz",
+      "directory": "/home/xxl/vln-backups/history",
+      "bytes": 13174306,
+      "sha256": "f3616a4e3656e2c1105c0bf9f776a1ee40bea541ac22d3e6f341a4736e987d3d"
+    },
+    {
+      "file": "e3-code-and-results.tar.gz",
+      "directory": "/home/xxl/vln-backups/history",
+      "bytes": 6309026,
+      "sha256": "9f224403d8e58b3b3a5ee5c40ad35a0a52c4b23366fd8f9681733c1a6f4be8d3"
+    }
+  ],
+  "research_boundary": {
+    "new_val_unseen_navigation_accesses": 0,
+    "ledger_rows": 18,
+    "ledger_sha256": "fa67ab4827b50efae7abc2cfd33c72008c015497fc077aba3be620a4b488336c",
+    "new_navigation_gain_claim": false,
+    "e3_predictor_trained": false,
+    "target_achieved": false
+  }
+}

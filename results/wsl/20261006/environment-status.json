@@ -1,0 +1,9 @@
+{
+  "stage": "environment_and_tests_complete",
+  "updated_unix": 1791295159.643374,
+  "success": true,
+  "commit": "d031a8d1692aa0ce36d651a0b70843d5051b290c",
+  "cuda_smoke": "cuda-smoke.json",
+  "pytest": "pytest.log",
+  "pip_check": "pip-check.log"
+}

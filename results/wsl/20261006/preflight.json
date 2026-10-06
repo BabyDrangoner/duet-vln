@@ -1,0 +1,46 @@
+{
+  "python": "3.11.16",
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "duet_python_recommended": "3.11",
+  "assets": {
+    "base_checkpoint": {
+      "path": "/home/xxl/projects/duet-vln/datasets/R2R/trained_models/best_val_unseen",
+      "exists": true
+    },
+    "train_annotations": {
+      "path": "/home/xxl/projects/duet-vln/datasets/R2R/annotations/R2R_train_enc.json",
+      "exists": true
+    },
+    "val_unseen_annotations": {
+      "path": "/home/xxl/projects/duet-vln/datasets/R2R/annotations/R2R_val_unseen_enc.json",
+      "exists": true
+    },
+    "features": {
+      "path": "/home/xxl/projects/duet-vln/datasets/R2R/features/pth_vit_base_patch16_224_imagenet.hdf5",
+      "exists": true
+    },
+    "angle_feature_connectivity": {
+      "path": "/home/xxl/projects/duet-vln/datasets/R2R/connectivity/ZMojNkEp431_connectivity.json",
+      "exists": true
+    }
+  },
+  "modules": {
+    "torch": true,
+    "numpy": true,
+    "transformers": true,
+    "h5py": true,
+    "networkx": true,
+    "jsonlines": true,
+    "line_profiler": true,
+    "MatterSim": true
+  },
+  "upstream_commit": "93e8b233164bc079a6db48b8a0a78d123ec8de41",
+  "upstream_verified": true,
+  "cuda_available": true,
+  "torch_version": "2.5.1+cu121",
+  "gpu": {
+    "name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "total_memory_bytes": 8585216000
+  },
+  "ready_for_rollout": true
+}

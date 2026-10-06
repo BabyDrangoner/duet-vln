@@ -1,0 +1,87 @@
+[
+  {
+    "file": "README.md",
+    "bytes": 2805,
+    "sha256": "94f68b6d2991c7873eeff1ac0b83d60a4e89ebdb4324d8d0774fdef9c994f47b"
+  },
+  {
+    "file": "acceptance-job.sh",
+    "bytes": 1143,
+    "sha256": "5cfe0955a48dbd3a46f2aa9967c954420c18f44a976a4ab7651b052c43059cf6"
+  },
+  {
+    "file": "acceptance-stages.jsonl",
+    "bytes": 176,
+    "sha256": "eaac5f2b709735afc0848e70a7dcdf204ba696e3be37a108e8bb8d7dd15cfe32"
+  },
+  {
+    "file": "assets-verification.json",
+    "bytes": 1233,
+    "sha256": "251afc9c862029ec4e82fb228e73e1c3057b72814ca28f79d4277f071cee8672"
+  },
+  {
+    "file": "bert-config-cache.json",
+    "bytes": 96,
+    "sha256": "9b5d35ba49600ab6edb6f671d872bce69f0ee1c3cbf935b08596becf3bba4811"
+  },
+  {
+    "file": "cuda-smoke.json",
+    "bytes": 181,
+    "sha256": "047e29bf19f26d4518bb1fbaced437cf02b2645cdaeba1afa9c687d62f627066"
+  },
+  {
+    "file": "environment-status.json",
+    "bytes": 253,
+    "sha256": "680157ad4b62f0865651bd2f82e8d42174464629bbadb201732ff3bce45ffeb5"
+  },
+  {
+    "file": "migration-summary.json",
+    "bytes": 3571,
+    "sha256": "a89ea58f19bbdf060381a2972e888968dec50626596301176c8a47bf416059e4"
+  },
+  {
+    "file": "pip-check.log",
+    "bytes": 30,
+    "sha256": "9261363b733079a641c2e4cc9bc46ffa1d8336945a87f807b6cf68847dbc9b09"
+  },
+  {
+    "file": "preflight.json",
+    "bytes": 1398,
+    "sha256": "910d912efce1e358b3d754f8d8e66a451ecaafd0ab51dc35fe4f2b15da028f0d"
+  },
+  {
+    "file": "pytest.log",
+    "bytes": 1036,
+    "sha256": "24f8fd52874d6f38dc9581da6f6efbc9739dd748682cbd3ca0afd858d737c8ac"
+  },
+  {
+    "file": "requirements-freeze.txt",
+    "bytes": 3703,
+    "sha256": "3e80be0c152335242f2b0971bcb8490b1f5478bd72119f5dc98e4445127d53cf"
+  },
+  {
+    "file": "resume-acceptance.json",
+    "bytes": 1283,
+    "sha256": "95cb4b28feb83ceeab90e1e493daa1ec9ddd263547ac06db64fa039f852b681b"
+  },
+  {
+    "file": "tested-source-commit.txt",
+    "bytes": 41,
+    "sha256": "73606a2a8e5700fd60ad746543cdeaefbaaacec104fa9587cff8ce6062209eba"
+  },
+  {
+    "file": "verified-wheel-manifest.json",
+    "bytes": 2731,
+    "sha256": "60224f28e6e469d8abe33f9bdc7db558d0e329af0a7dc862d8de272dd7ee6d47"
+  },
+  {
+    "file": "wsl-cache-fit8-report.json",
+    "bytes": 10150,
+    "sha256": "a9b01c1bb81599562fc821460440d0274677e98381d2dedbce52ebe92b908cdc"
+  },
+  {
+    "file": "wsl-identity-smoke.json",
+    "bytes": 3840,
+    "sha256": "a576379d64e54236a3dcce09b2d2f7e7cc535b20557f282dfe3208dc4cffde61"
+  }
+]

@@ -1,5 +1,6 @@
 # 随 Git 保存的实验证据
 
+- [WSL 迁移验收](wsl/20261006/README.md)：环境、离线导航、GPU 强制终止后的精确续训和持久目录备份均通过。
 - [E2 完整闭环报告](e2/loop-report.json)：训练、选模与完整导航结果，未超过 DUET。
 - [E3 完成决定](e3/completion-decision.json)、[机会统计](e3/opportunity-feasibility.json)、[目标定义](e3/target-feasibility.json)：128 条训练侧原指令的分支实验，尚未训练 E3 模型。
 - E3 [fit 汇总](e3/probe-fit-v1/probe-summary.json)、[dev 汇总](e3/probe-dev-v1/probe-summary.json)及同目录 `audit-v2.json`：保留原实验 JSON 字节。

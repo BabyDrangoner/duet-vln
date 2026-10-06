@@ -1,0 +1,43 @@
+{
+  "backup_backend": "filesystem",
+  "backup_mount_identity": {
+    "backend": "filesystem",
+    "device": "8:48",
+    "filesystem": "ext4",
+    "mount_id": "80",
+    "mount_options": [
+      "rw",
+      "relatime"
+    ],
+    "mount_point": "/",
+    "mount_root": "/",
+    "source": "/dev/sdd",
+    "verification": "filesystem-mount-readback-sha256"
+  },
+  "backup_run": "/home/xxl/vln-backups/wsl-migration-resume-20261006",
+  "backup_snapshots": 4,
+  "best": {
+    "epoch": 1,
+    "global_step": 6,
+    "head_sha256": "607738ec48c893903126da2e45acadf6f9fd87595f7e6277a840d4f5321fe2fd",
+    "num_episodes": 8,
+    "protocol_sha256": "6bda447bde1e707215bde4d316001bb39005947a13bc6f01b3fbc9fcb5c2114b",
+    "scope": "smoke",
+    "spl": 95.34836555439018,
+    "split": "train_dev",
+    "sr": 100.0,
+    "subset": true
+  },
+  "evidence": "/home/xxl/projects/duet-vln/outputs/wsl-migration-resume-20261006-acceptance",
+  "exact_cuda_training_state_match": true,
+  "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "killed_step": 6,
+  "local_snapshots": 3,
+  "paused_step": 3,
+  "recovered_final_step": 12,
+  "run_id": "wsl-migration-resume-20261006",
+  "status": "passed",
+  "validation_epochs": 2,
+  "validation_subset_episodes": 8,
+  "verification": "filesystem-mount-readback-sha256"
+}

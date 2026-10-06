@@ -72,7 +72,7 @@ source outputs/runtime-wsl/activate.sh
   --output "outputs/runtime-wsl/identity-$(date -u +%Y%m%dT%H%M%SZ).json"
 ```
 
-激活文件会设置虚拟环境、MatterSim 模块路径、用户态 OSMesa 动态库路径和实验所需线程变量。开启新的 shell 后重新 `source` 即可。冒烟通过只说明运行环境和接入一致性通过，不能作为导航提升结论。
+激活文件会设置虚拟环境、MatterSim 模块路径、用户态 OSMesa 动态库路径和实验所需线程变量。开启新的 shell 后重新 `source` 即可。`outputs/runtime-wsl/python/` 是虚拟环境依赖的解释器，`outputs/runtime-wsl/native/` 是模拟器依赖的动态库，不能将 `outputs/runtime-wsl/` 整体当缓存清理。冒烟通过只说明运行环境和接入一致性通过，不能作为导航提升结论。
 
 ## 备份、续训与断线
 
@@ -101,9 +101,38 @@ source outputs/runtime-wsl/activate.sh
   --cache outputs/wsl-cache-fit8
 ```
 
+训练模板保留 `max_process_seconds: 36000` 的单进程预算（10 小时），`max_vm_age_seconds: null` 取消原 Colab 运行时寿命约束。剩余时间不足预留的评测时间时，任务会保存状态、以退出码 75 暂停；使用相同配置加 `--require-resume` 接着运行。
+
 长任务建议在 `tmux` 会话中启动，SSH 断开后会继续运行。Windows 关机或 WSL 被停止仍会终止进程；恢复时使用相同运行配置和备份目录，由检查点恢复。
 
 同一个备份 run 只允许一个写入进程，不要从不同本地目录同时运行同一个 run。需要严格续训时使用 `bash scripts/train_wsl.sh --config <原配置> --require-resume`；找不到有效状态会报错。
+
+## 脱离 Mac 运行
+
+本机已经缓存 `bert-base-uncased` 配置，导航与续训验收均在离线模式下通过。在新的 WSL shell 中运行：
+
+```bash
+cd /home/xxl/projects/duet-vln
+source outputs/runtime-wsl/activate.sh
+unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy
+export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+```
+
+随后使用上述采集、训练或严格续训命令。离线模式使用已缓存的资源；首次安装、更新 Git 或增加新资产仍需要网络。长任务放在 `tmux` 内运行；Windows 休眠、关机或停止 WSL 会中断任务，应在恢复后严格续训。
+
+## 本次迁移验收（2026-10-06）
+
+测试代码提交为 `d031a8d1692aa0ce36d651a0b70843d5051b290c`：
+
+- WSL 全量测试 881 项通过、48 项子测试通过；`pip check` 通过。
+- PyTorch 2.5.1+cu121 的真实 CUDA 运算及 MatterSim 实例创建通过。
+- 5 份数据/权重资产和 92 个连接目录文件（含 90 份导航图）的固定 SHA 校验通过。
+- 两条 `train_fit` 指令的零残差导航轨迹完全一致；八条 `train_fit` 缓存采集成功。
+- 真实 GPU 训练在第 3 步暂停，第 6 步备份后被强制终止，从空本地目录恢复至第 12 步完成。模型、优化器、训练历史和游标与连续训练逐项精确一致；两次八条 `train_dev` 导航评估、最优 checkpoint 读回和保留策略通过。
+
+原始小型报告、运行命令与依赖记录见 [迁移验收记录](../results/wsl/20261006/README.md)。这次使用训练划分做工程验收，没有新增 `val_unseen` 导航访问，也没有产生新的导航提升结论。
+
+E2/E3 代码和结果归档已复制到 `/home/xxl/vln-backups/history/` 并核对 SHA。原云盘归档仍作为历史副本；当前训练自动备份到 `/home/xxl/vln-backups`，这不是云盘自动同步。
 
 ## 代码同步
 

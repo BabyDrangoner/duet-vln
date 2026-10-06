@@ -1,0 +1,145 @@
+{
+  "metadata": {
+    "dataset": "r2r",
+    "feature_id": "ae0ff208349e6a12096fe47c7b045e42b93e9c047da50d19dd17e04ec8d31bbc",
+    "base_checkpoint_sha256": "c1ed3ed27e1acbffec1fa81fbdd06e16498398809a7f80f349043ba74c21ba94",
+    "upstream_commit": "93e8b233164bc079a6db48b8a0a78d123ec8de41",
+    "max_action_len": 15,
+    "feedback": "argmax",
+    "feature_schema": "duet_action_features_v1",
+    "model_config_sha256": "2e0b54d59027524607499822d5a22912b671092df2ea88856c912c86affb1544",
+    "partition_seed": 20261003,
+    "dev_fraction": 0.2,
+    "train_annotation_sha256": "8ffdfd5a5c5efeef56af7883ebac28d854a64161f1d0a3d0e52ba75086b726b8",
+    "connectivity_sha256": "ef4a536632ad2d76b94c5b7ee41fffcc470a33844f7e7a9ca048739cdaa7d6af",
+    "source_and_integration_sha256": "4d5d80f0932c3b040cb74ead0a4ed8593454cd9eec1bfd01f0b96051a38194a2",
+    "split": "train_fit",
+    "protocol_sha256": "fd93de75a29765fd5aaaac0786286a30d621d9fefca70e85065a45adbf519ebb",
+    "subset": true,
+    "model": {
+      "dataset": "r2r",
+      "tokenizer": "bert",
+      "fusion": "dynamic",
+      "features": "vitbase",
+      "image_feat_size": 768,
+      "angle_feat_size": 4,
+      "obj_feat_size": 0,
+      "num_l_layers": 9,
+      "num_x_layers": 4,
+      "num_pano_layers": 2,
+      "max_action_len": 15,
+      "max_instr_len": 200,
+      "batch_size": 1,
+      "enc_full_graph": true,
+      "graph_sprels": true,
+      "expert_policy": "spl",
+      "dropout": 0.5,
+      "feat_dropout": 0.4,
+      "optim": "adamW"
+    },
+    "seed": 0,
+    "mode": "identity",
+    "num_episodes": 2,
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "zero_residual_trajectory_identity": true,
+    "zero_head_resources": {
+      "rollout_seconds": 0.5611002750010812,
+      "cuda_peak_allocated_bytes": 762833920,
+      "cuda_peak_reserved_bytes": 849346560
+    }
+  },
+  "resources": {
+    "rollout_seconds": 0.46602625499872374,
+    "cuda_peak_allocated_bytes": 762039296,
+    "cuda_peak_reserved_bytes": 849346560
+  },
+  "summary": {
+    "action_steps": 4.0,
+    "steps": 4.0,
+    "lengths": 9.743542835858099,
+    "nav_error": 0.0,
+    "oracle_error": 0.0,
+    "sr": 100.0,
+    "oracle_sr": 100.0,
+    "spl": 100.0,
+    "nDTW": 100.0,
+    "SDTW": 100.0,
+    "CLS": 100.0
+  },
+  "episodes": [
+    {
+      "instr_id": "1000_0",
+      "scan_id": "JF19kD82Mey",
+      "nav_error": 0.0,
+      "oracle_error": 0.0,
+      "action_steps": 4.0,
+      "trajectory_steps": 4.0,
+      "trajectory_lengths": 9.743542835858099,
+      "success": 1.0,
+      "spl": 1.0,
+      "oracle_success": 1.0,
+      "DTW": 0.0,
+      "nDTW": 1.0,
+      "SDTW": 1.0,
+      "CLS": 1.0
+    },
+    {
+      "instr_id": "1000_1",
+      "scan_id": "JF19kD82Mey",
+      "nav_error": 0.0,
+      "oracle_error": 0.0,
+      "action_steps": 4.0,
+      "trajectory_steps": 4.0,
+      "trajectory_lengths": 9.743542835858099,
+      "success": 1.0,
+      "spl": 1.0,
+      "oracle_success": 1.0,
+      "DTW": 0.0,
+      "nDTW": 1.0,
+      "SDTW": 1.0,
+      "CLS": 1.0
+    }
+  ],
+  "trajectories": [
+    {
+      "instr_id": "1000_0",
+      "trajectory": [
+        [
+          "c7b357a72c3d4ce2aa16f8d5c41a54ba"
+        ],
+        [
+          "a33fe858085149e8908942d0bf98767f"
+        ],
+        [
+          "db0e4e7b77c04948b581a11f633df145"
+        ],
+        [
+          "1227344eaa1f424b83db585fd665fb2a"
+        ],
+        [
+          "7dbbeb8448f94a0ca912bb73561fb1f7"
+        ]
+      ]
+    },
+    {
+      "instr_id": "1000_1",
+      "trajectory": [
+        [
+          "c7b357a72c3d4ce2aa16f8d5c41a54ba"
+        ],
+        [
+          "a33fe858085149e8908942d0bf98767f"
+        ],
+        [
+          "db0e4e7b77c04948b581a11f633df145"
+        ],
+        [
+          "1227344eaa1f424b83db585fd665fb2a"
+        ],
+        [
+          "7dbbeb8448f94a0ca912bb73561fb1f7"
+        ]
+      ]
+    }
+  ]
+}
