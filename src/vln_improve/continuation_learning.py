@@ -12,6 +12,7 @@ from collections.abc import Mapping
 import torch
 from torch import Tensor, nn
 from torch.nn import functional as F
+from torch.nn.utils.rnn import pack_padded_sequence
 
 
 FEATURE_DIM = 1549
@@ -101,6 +102,64 @@ construct the causal prefix: the model cannot infer timestamps from embeddings.
         """Read exactly the three policy input fields; labels are never inspected."""
         return self(record["features"], record["history_features"], record["progress"])
 
+    def forward_batch(self, features: Tensor, history_features: Tensor, progress: Tensor,
+                      candidate_mask: Tensor, history_mask: Tensor) -> Tensor:
+        """Vectorized counterpart of forward; masks describe contiguous prefixes.
+
+Padded candidates return zero. Padded history never enters the GRU, including
+when padding contains NaNs. No sequence can read another sequence's tokens.
+"""
+        for name, value, ndim in (("features", features, 3), ("history_features", history_features, 3),
+                                  ("progress", progress, 2)):
+            if not isinstance(value, Tensor) or not value.is_floating_point() or value.ndim != ndim:
+                raise ValueError(f"batched {name} must be a floating-point {ndim}D tensor")
+        batch, width, dimension = features.shape
+        if (batch < 1 or not 1 <= width <= MAX_CANDIDATES or dimension != self.feature_dim
+                or history_features.shape[0] != batch or history_features.shape[2] != self.feature_dim
+                or not 1 <= history_features.shape[1] <= MAX_HISTORY_TOKENS or progress.shape != (batch, 4)):
+            raise ValueError("invalid batched feature/history/progress shape")
+        for name, mask, expected in (("candidate_mask", candidate_mask, (batch, width)),
+                                     ("history_mask", history_mask, history_features.shape[:2])):
+            if not isinstance(mask, Tensor) or mask.dtype != torch.bool or mask.shape != expected:
+                raise ValueError(f"{name} must be boolean with the corresponding batch shape")
+            lengths = mask.sum(1)
+            expected_mask = torch.arange(mask.shape[1], device=mask.device)[None, :] < lengths[:, None]
+            if not bool((lengths > 0).all()) or not torch.equal(mask, expected_mask):
+                raise ValueError(f"{name} must contain one nonempty contiguous prefix per record")
+        history_lengths = history_mask.sum(1).cpu()
+        features = features.detach().masked_fill(~candidate_mask.to(features.device).unsqueeze(-1), 0)
+        history_features = history_features.detach().masked_fill(~history_mask.to(history_features.device).unsqueeze(-1), 0)
+        progress = progress.detach()
+        if any(not bool(torch.isfinite(value).all()) for value in (features, history_features, progress)):
+            raise ValueError("valid batched policy inputs must be finite")
+        weight = self.encoder[0].weight
+        features, history_features, progress = (value.to(device=weight.device, dtype=weight.dtype)
+                                                for value in (features, history_features, progress))
+        candidate_mask = candidate_mask.to(weight.device)
+        if not self.history:
+            last = (history_lengths - 1).to(weight.device).view(batch, 1, 1)
+            history_features = history_features.gather(1, last.expand(-1, -1, self.feature_dim))
+            history_lengths = torch.ones_like(history_lengths)
+        candidates = self.encoder(features)
+        tokens = self.encoder(history_features)
+        packed = pack_padded_sequence(tokens, history_lengths, batch_first=True, enforce_sorted=False)
+        _, hidden = self.history_encoder(packed)
+        baseline = candidates[:, :1].expand_as(candidates)
+        context = hidden[-1].unsqueeze(1).expand_as(candidates)
+        pair = torch.cat((candidates, baseline, candidates - baseline, context,
+                          progress.unsqueeze(1).expand(-1, width, -1)), dim=-1)
+        raw = self.comparison(pair)
+        if not bool(torch.isfinite(raw).all()):
+            raise ValueError("comparator produced non-finite batched scores")
+        scores = raw - raw[:, :1] if self.mode == "relative" else raw
+        return scores.masked_fill(~candidate_mask.unsqueeze(-1), 0)
+
+    def score_records(self, records) -> tuple[Tensor, Tensor]:
+        """Collate only policy inputs; return padded scores and candidate mask."""
+        inputs = collate_policy_records(records, self.feature_dim, self.encoder[0].weight.dtype)
+        scores = self.forward_batch(**inputs)
+        return scores, inputs["candidate_mask"].to(scores.device)
+
     def relative_scores(self, features: Tensor, history_features: Tensor, progress: Tensor) -> Tensor:
         """Return predicted SR/SPL gains for either outcome regression mode.
 
@@ -116,6 +175,86 @@ def _positive_weight(name: str, value: float) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
         raise ValueError(f"{name} must be finite and positive")
     return float(value)
+
+
+def collate_policy_records(records, feature_dim: int, dtype=torch.float32):
+    """Pad observed prefixes on the input device before one model transfer."""
+    records = list(records)
+    if not records:
+        raise ValueError("a batch requires at least one record")
+    triples = []
+    for record in records:
+        values = (record["features"], record["history_features"], record["progress"])
+        if any(not isinstance(value, Tensor) or not value.is_floating_point() for value in values):
+            raise ValueError("policy inputs must be floating-point tensors")
+        features, history, progress = values
+        if (features.ndim != 2 or features.shape[1] != feature_dim or not 1 <= len(features) <= MAX_CANDIDATES
+                or history.ndim != 2 or history.shape[1] != feature_dim or not 1 <= len(history) <= MAX_HISTORY_TOKENS
+                or progress.shape != (4,)):
+            raise ValueError("invalid record policy input shapes")
+        triples.append(values)
+    device = triples[0][0].device
+    batch, width, length = len(triples), max(len(x[0]) for x in triples), max(len(x[1]) for x in triples)
+    features = torch.zeros(batch, width, feature_dim, device=device, dtype=dtype)
+    history = torch.zeros(batch, length, feature_dim, device=device, dtype=dtype)
+    progress = torch.zeros(batch, 4, device=device, dtype=dtype)
+    candidates = torch.zeros(batch, width, device=device, dtype=torch.bool)
+    prefixes = torch.zeros(batch, length, device=device, dtype=torch.bool)
+    for index, (x, h, p) in enumerate(triples):
+        n, t = len(x), len(h)
+        features[index, :n] = x.detach().to(device=device, dtype=dtype)
+        history[index, :t] = h.detach().to(device=device, dtype=dtype)
+        progress[index] = p.detach().to(device=device, dtype=dtype)
+        candidates[index, :n] = True
+        prefixes[index, :t] = True
+    return {"features": features, "history_features": history, "progress": progress,
+            "candidate_mask": candidates, "history_mask": prefixes}
+
+
+def batch_record_losses(model: ContinuationComparator, records, *, sr_weight: float = 1.,
+                        spl_weight: float = 1., rescue_weight: float = 1., harm_weight: float = 1.) -> Tensor:
+    """Vectorized loss with exactly the single-record targets and normalization."""
+    records = list(records)
+    weights = [_positive_weight(name, value) for name, value in
+               (("sr_weight", sr_weight), ("spl_weight", spl_weight),
+                ("rescue_weight", rescue_weight), ("harm_weight", harm_weight))]
+    prediction, mask = model.score_records(records)
+    if model.mode == "teacher":
+        targets = []
+        for record in records:
+            target = record["teacher_target"]
+            if type(target) is not int or not -1 <= target < len(record["features"]):
+                raise ValueError("teacher_target must be -1 or a legal candidate index")
+            targets.append(target)
+        targets = torch.tensor(targets, device=prediction.device)
+        logits = prediction[:, :, 0].masked_fill(~mask, -torch.inf)
+        losses = F.cross_entropy(logits, targets.clamp_min(0), reduction="none")
+        return losses.masked_fill(targets < 0, 0)
+    # Validate labels before a single transfer, keeping full results outside the
+    # score_records interface. Training cache labels are ordinarily on the CPU.
+    if not isinstance(records[0]["utilities"], Tensor):
+        raise ValueError("utilities must be floating-point outcome tensors")
+    device = records[0]["utilities"].device
+    utilities = torch.zeros(*prediction.shape, device=device, dtype=prediction.dtype)
+    for index, record in enumerate(records):
+        value = record["utilities"]
+        count = len(record["features"])
+        if (not isinstance(value, Tensor) or not value.is_floating_point() or value.shape != (count, 2)
+                or not bool(torch.isfinite(value).all())
+                or not bool(((value[:, 0] == 0) | (value[:, 0] == 1)).all())
+                or not bool(((value[:, 1] >= 0) & (value[:, 1] <= value[:, 0])).all())):
+            raise ValueError("utilities require binary SR and SPL fractions with zero SPL on failure")
+        utilities[index, :count] = value.detach().to(device=device, dtype=prediction.dtype)
+    utilities = utilities.to(prediction.device)
+    gains = utilities - utilities[:, :1]
+    targets = gains if model.mode == "relative" else utilities
+    candidate_weights = torch.ones_like(prediction[:, :, 0])
+    candidate_weights = torch.where(gains[:, :, 0] > 0, weights[2], candidate_weights)
+    candidate_weights = torch.where(gains[:, :, 0] < 0, weights[3], candidate_weights)
+    element_weights = candidate_weights.unsqueeze(-1) * prediction.new_tensor(weights[:2])
+    element_weights = element_weights * mask.unsqueeze(-1)
+    errors = F.smooth_l1_loss(prediction, targets, reduction="none", beta=1.)
+    return (errors * element_weights).sum((1, 2)) / element_weights.sum((1, 2))
 
 
 def record_loss(model: ContinuationComparator, record: Mapping, *, sr_weight: float = 1.0,

@@ -4,6 +4,7 @@ import pytest
 import torch
 
 from vln_improve.continuation_learning import ContinuationComparator, record_loss
+from vln_improve import continuation_learning as learning
 
 
 @pytest.fixture(autouse=True)
@@ -180,3 +181,201 @@ def test_invalid_teacher_index_rejected(target):
 def test_invalid_loss_weights_rejected(weight):
     with pytest.raises(ValueError, match="rescue_weight"):
         record_loss(ContinuationComparator(7, 8), record(), rescue_weight=weight)
+
+
+def heterogeneous_records(dtype=torch.float32):
+    """Exercise all candidate counts and unsorted, extreme prefix lengths."""
+    examples = []
+    outcomes = [((1., .7),), ((0., 0.), (1., .8)),
+                ((1., .6), (0., 0.), (1., .9)),
+                ((0., 0.), (0., 0.), (1., .4), (1., .9))]
+    for index, (candidates, tokens, target) in enumerate(((1, 1, 0), (2, 7, -1), (3, 3, 2), (4, 29, 3))):
+        generator = torch.Generator().manual_seed(105 + index)
+        examples.append({"features": torch.randn(candidates, 7, generator=generator).to(dtype),
+                         "history_features": torch.randn(tokens, 7, generator=generator).to(dtype),
+                         "progress": torch.tensor([index / 14, .5, .12, candidates / 4], dtype=dtype),
+                         "utilities": torch.tensor(outcomes[index], dtype=dtype),
+                         "teacher_target": target})
+    return examples
+
+
+def padded_inputs(records, *, candidates=None, tokens=None, fill=float("nan")):
+    """Build the public batch interface independently of score_records."""
+    candidates = candidates or max(len(row["features"]) for row in records)
+    tokens = tokens or max(len(row["history_features"]) for row in records)
+    count, width = len(records), records[0]["features"].shape[1]
+    features = torch.full((count, candidates, width), fill)
+    history = torch.full((count, tokens, width), fill)
+    candidate_mask = torch.zeros(count, candidates, dtype=torch.bool)
+    history_mask = torch.zeros(count, tokens, dtype=torch.bool)
+    for index, row in enumerate(records):
+        k, t = len(row["features"]), len(row["history_features"])
+        features[index, :k] = row["features"]
+        history[index, :t] = row["history_features"]
+        candidate_mask[index, :k] = True
+        history_mask[index, :t] = True
+    return dict(features=features, history_features=history,
+                progress=torch.stack([row["progress"] for row in records]),
+                candidate_mask=candidate_mask, history_mask=history_mask)
+
+
+@pytest.mark.parametrize("mode", ("relative", "absolute", "teacher"))
+@pytest.mark.parametrize("history", (True, False))
+@pytest.mark.parametrize("device", ("cpu", pytest.param("cuda", marks=pytest.mark.skipif(
+    not torch.cuda.is_available(), reason="CUDA acceptance runs on the WSL GPU"))))
+def test_batch_scores_losses_and_gradients_match_separate_records(mode, history, device):
+    torch.manual_seed(61)
+    batch_model = ContinuationComparator(7, 12, mode=mode, history=history).to(device)
+    nonzero_output(batch_model)
+    single_model = copy.deepcopy(batch_model)
+    records = heterogeneous_records(dtype=torch.float16)
+    for row in records:
+        for name in ("features", "history_features", "progress", "utilities"):
+            row[name].requires_grad_(True)
+    scores, mask = batch_model.score_records(records)
+    assert scores.shape == (4, 4, 2) and mask.shape == (4, 4)
+    assert mask.dtype == torch.bool
+    assert scores.device == mask.device == next(batch_model.parameters()).device
+    assert scores.dtype == next(batch_model.parameters()).dtype
+    assert torch.count_nonzero(scores[~mask]) == 0
+    for index, row in enumerate(records):
+        candidates = len(row["features"])
+        assert mask[index].tolist() == [True] * candidates + [False] * (4 - candidates)
+        torch.testing.assert_close(scores[index, :candidates], single_model.score_record(row),
+                                   rtol=2e-5, atol=2e-6)
+    weights = dict(sr_weight=2., spl_weight=.75, rescue_weight=3., harm_weight=4.)
+    actual = learning.batch_record_losses(batch_model, records, **weights)
+    expected = torch.stack([record_loss(single_model, row, **weights) for row in records])
+    assert actual.shape == (len(records),)
+    torch.testing.assert_close(actual, expected, rtol=2e-5, atol=2e-6)
+    record_weights = actual.new_tensor([.5, 2., 1.25, 3.])
+    (actual * record_weights).sum().backward()
+    (expected * record_weights).sum().backward()
+    for name, actual_parameter in batch_model.named_parameters():
+        expected_parameter = dict(single_model.named_parameters())[name]
+        assert actual_parameter.grad is not None and expected_parameter.grad is not None, name
+        torch.testing.assert_close(actual_parameter.grad, expected_parameter.grad,
+                                   rtol=1e-4, atol=5e-6, msg=lambda message: name + ": " + message)
+    assert all(row[name].grad is None for row in records
+               for name in ("features", "history_features", "progress", "utilities"))
+
+
+@pytest.mark.parametrize("mode", ("relative", "absolute", "teacher"))
+def test_batch_prediction_collation_reads_only_policy_inputs(mode):
+    model = ContinuationComparator(7, 8, mode=mode)
+    nonzero_output(model)
+    records = heterogeneous_records()
+
+    class InputsOnly(dict):
+        def __getitem__(self, key):
+            assert key in {"features", "history_features", "progress"}, key
+            return super().__getitem__(key)
+
+        def get(self, key, default=None):
+            assert key in {"features", "history_features", "progress"}, key
+            return super().get(key, default)
+
+    expected, expected_mask = model.score_records(records)
+    poisoned = [InputsOnly(dict(row, utilities=torch.full_like(row["utilities"], float("nan")),
+                               teacher_target=999, goal="unavailable", future="forbidden"))
+                for row in records]
+    actual, mask = model.score_records(poisoned)
+    assert torch.equal(actual, expected)
+    assert torch.equal(mask, expected_mask)
+
+
+@pytest.mark.parametrize("history", (True, False))
+def test_nan_padding_and_extra_future_padding_do_not_change_valid_scores(history):
+    model = ContinuationComparator(7, 8, history=history)
+    nonzero_output(model)
+    rows = heterogeneous_records()[:3]
+    compact = padded_inputs(rows)
+    expanded = padded_inputs(rows, candidates=4, tokens=29)
+    original = model.forward_batch(**compact)
+    padded = model.forward_batch(**expanded)
+    assert torch.isfinite(padded).all()
+    assert torch.count_nonzero(padded[~expanded["candidate_mask"]]) == 0
+    for index, row in enumerate(rows):
+        count = len(row["features"])
+        torch.testing.assert_close(padded[index, :count], original[index, :count], rtol=1e-5, atol=1e-6)
+        torch.testing.assert_close(padded[index, :count], model.score_record(row), rtol=1e-5, atol=1e-6)
+    padded.sum().backward()
+    assert all(parameter.grad is None or torch.isfinite(parameter.grad).all()
+               for parameter in model.parameters())
+    # Alter another item's valid context: samples must never attend to each other.
+    expanded["features"][1, :2] *= -100
+    expanded["history_features"][1, :7] += 100
+    changed = model.forward_batch(**expanded)
+    torch.testing.assert_close(changed[0], padded[0], rtol=0, atol=0)
+    torch.testing.assert_close(changed[2], padded[2], rtol=0, atol=0)
+
+
+def test_batch_history_ablation_uses_last_valid_token_and_ignores_earlier_history():
+    model = ContinuationComparator(7, 8, history=False)
+    nonzero_output(model)
+    rows = heterogeneous_records()
+    before, mask = model.score_records(rows)
+    for row in rows:
+        row["history_features"][:-1] = 1000.
+    after, after_mask = model.score_records(rows)
+    assert torch.equal(before, after)
+    assert torch.equal(mask, after_mask)
+    for index, row in enumerate(rows):
+        only_current = dict(row, history_features=row["history_features"][-1:])
+        torch.testing.assert_close(after[index, :len(row["features"])], model.score_record(only_current),
+                                   rtol=1e-5, atol=1e-6)
+
+
+@pytest.mark.parametrize("which,error", (
+    ("candidate_mask", "nonprefix"), ("candidate_mask", "empty"),
+    ("candidate_mask", "dtype"), ("candidate_mask", "shape"),
+    ("history_mask", "nonprefix"), ("history_mask", "empty"),
+    ("history_mask", "dtype"), ("history_mask", "shape")))
+def test_batch_rejects_invalid_or_nonprefix_masks(which, error):
+    inputs = padded_inputs(heterogeneous_records())
+    if error == "nonprefix":
+        inputs[which][0] = False
+        inputs[which][0, 0] = inputs[which][0, 2] = True
+    elif error == "empty":
+        inputs[which][0] = False
+    elif error == "dtype":
+        inputs[which] = inputs[which].float()
+    else:
+        inputs[which] = inputs[which][:, :-1]
+    with pytest.raises(ValueError):
+        ContinuationComparator(7, 8).forward_batch(**inputs)
+
+
+@pytest.mark.parametrize("field", ("features", "history_features", "progress"))
+def test_batch_rejects_nonfinite_values_inside_valid_inputs(field):
+    inputs = padded_inputs(heterogeneous_records())
+    inputs[field].reshape(-1)[0] = float("nan")
+    with pytest.raises(ValueError):
+        ContinuationComparator(7, 8).forward_batch(**inputs)
+
+
+@pytest.mark.parametrize("boundary", ("empty_batch", "too_many_candidates", "too_much_history"))
+def test_batch_rejects_dimensions_outside_fixed_interface_limits(boundary):
+    if boundary == "too_many_candidates":
+        inputs = padded_inputs(heterogeneous_records(), candidates=5)
+    elif boundary == "too_much_history":
+        inputs = padded_inputs(heterogeneous_records(), tokens=30)
+    else:
+        inputs = {name: value[:0] for name, value in padded_inputs(heterogeneous_records()).items()}
+    with pytest.raises(ValueError):
+        ContinuationComparator(7, 8).forward_batch(**inputs)
+
+
+def test_teacher_batch_with_no_expert_labels_has_differentiable_zero_loss():
+    model = ContinuationComparator(7, 8, mode="teacher")
+    nonzero_output(model)
+    rows = heterogeneous_records()
+    for row in rows:
+        row["teacher_target"] = -1
+        del row["utilities"]
+    losses = learning.batch_record_losses(model, rows)
+    assert torch.equal(losses, torch.zeros(len(rows)))
+    assert losses.requires_grad
+    losses.sum().backward()
+    assert all(parameter.grad is None or torch.count_nonzero(parameter.grad) == 0
+               for parameter in model.parameters())

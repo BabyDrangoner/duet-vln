@@ -17,6 +17,7 @@ import torch
 
 from scripts import train_continuation_v2 as training
 from vln_improve.checkpoint_store import CheckpointStore
+from vln_improve.continuation_learning import record_loss
 from vln_improve.continuation_v2 import SCHEMA as DATA_SCHEMA, SCHEDULES, save_bundle
 from vln_improve.protocol import file_sha256
 
@@ -100,20 +101,20 @@ class FeatureScores(torch.nn.Module):
         return self(record["features"], record["history_features"], record["progress"])
 
 
-def assert_tree_equal(actual, expected):
+def assert_tree_equal(actual, expected, *, rtol=0, atol=0):
     if isinstance(expected, torch.Tensor):
         assert isinstance(actual, torch.Tensor)
-        torch.testing.assert_close(actual, expected, rtol=0, atol=0)
+        torch.testing.assert_close(actual, expected, rtol=rtol, atol=atol)
     elif isinstance(expected, np.ndarray):
         np.testing.assert_array_equal(actual, expected)
     elif isinstance(expected, dict):
         assert actual.keys() == expected.keys()
         for key in expected:
-            assert_tree_equal(actual[key], expected[key])
+            assert_tree_equal(actual[key], expected[key], rtol=rtol, atol=atol)
     elif isinstance(expected, (list, tuple)):
         assert type(actual) is type(expected) and len(actual) == len(expected)
         for left, right in zip(actual, expected):
-            assert_tree_equal(left, right)
+            assert_tree_equal(left, right, rtol=rtol, atol=atol)
     else:
         assert actual == expected
 
@@ -413,20 +414,29 @@ def test_teacher_valid_labels_preserve_equal_total_instruction_weight(tmp_path):
     # supervised states receive total weight eight each, with a fixed batch
     # denominator of sixteen; missing labels never become expert targets.
     terms = []
-    # Preserve the captured plan's addition order to compare Adam state exactly.
+    # Preserve addition order. Batched versus separate matrix kernels may still
+    # differ by rounding; checkpoint-resume tests continue to require exactness.
     # These fixture weights are calculated independently of trainer counters.
     fixture_weights = {"fit-0": 8., "fit-1": 8 / 3}
     for item in trainer.plan:
         row = fit.records[item["record_index"]]
         assert item["weight"] == 1.
         if row["teacher_target"] != -1:
-            terms.append(training.record_loss(expected, row) * fixture_weights[row["instr_id"]])
+            terms.append(record_loss(expected, row) * fixture_weights[row["instr_id"]])
     weighted_loss = torch.stack(terms).sum() / config["batch_size"]
     weighted_loss.backward()
     optimizer.step()
     trainer.step()
-    assert_tree_equal(trainer.head.state_dict(), expected.state_dict())
-    assert_tree_equal(trainer.optimizer.state_dict(), optimizer.state_dict())
+    for name, actual in trainer.head.state_dict().items():
+        # A common logit bias has theoretically zero CE gradient. Adam may
+        # amplify roundoff there; this shift cancels out of every softmax.
+        tolerance = 1e-5 if name == "comparison.2.bias" else 5e-7
+        torch.testing.assert_close(actual, expected.state_dict()[name], rtol=1e-4, atol=tolerance)
+    assert_tree_equal(trainer.optimizer.state_dict(), optimizer.state_dict(), rtol=1e-4, atol=5e-7)
+    for row in labeled:
+        actual_probability = trainer.head.score_record(row)[:, 0].softmax(0)
+        expected_probability = expected.score_record(row)[:, 0].softmax(0)
+        torch.testing.assert_close(actual_probability, expected_probability, rtol=1e-5, atol=2e-7)
     row = trainer.training_history[-1]
     assert row["teacher_labeled_slots"] == len(labeled)
     assert row["teacher_missing_slots"] == len(fit.records) - len(labeled)
@@ -470,6 +480,73 @@ def test_teacher_rejects_dataset_without_any_expert_labels(tmp_path):
         row["teacher_target"] = -1
     with pytest.raises(ValueError, match="teacher|label|expert"):
         training.ContinuationTrainer(fit, dev, "teacher-history", small_config())
+
+
+@pytest.mark.parametrize("arm", tuple(training.ARMS))
+def test_training_step_uses_one_vectorized_loss_call(tmp_path, monkeypatch, arm):
+    fit, dev = make_dataset(tmp_path / "fit"), make_dataset(tmp_path / "dev", "train_dev")
+    config = small_config(batch_size=4)
+    if arm == "teacher-history":
+        plan = training.build_epoch_plan(fit.records, fit.records, config["seed"], 0)
+        fit.records[plan[0]["record_index"]]["teacher_target"] = -1
+    trainer = training.ContinuationTrainer(fit, dev, arm, config)
+    original = training.batch_record_losses
+    calls = []
+
+    def spy(model, records, **weights):
+        assert model is trainer.head
+        rows = list(records)
+        calls.append(len(rows))
+        return original(model, rows, **weights)
+
+    def forbidden_single_record(*args, **kwargs):
+        raise AssertionError("training step must use the batched prediction path")
+
+    monkeypatch.setattr(training, "batch_record_losses", spy)
+    monkeypatch.setattr(trainer.head, "score_record", forbidden_single_record)
+    trainer.step()
+    assert len(calls) == 1
+    assert calls[0] == (3 if arm == "teacher-history" else 4)
+    assert trainer.global_step == trainer.optimizer_updates == 1
+
+
+@pytest.mark.parametrize("arm", ("relative-history", "absolute-history", "teacher-history"))
+def test_final_partial_batch_keeps_fixed_denominator_and_record_weights(tmp_path, monkeypatch, arm):
+    fit, dev = make_dataset(tmp_path / "fit"), make_dataset(tmp_path / "dev", "train_dev")
+    config = small_config(epochs=1, candidate_epochs=[1], batch_size=3)
+    trainer = training.ContinuationTrainer(fit, dev, arm, config)
+    while trainer.cursor + config["batch_size"] < len(trainer.plan):
+        trainer.step()
+    remaining = trainer.plan[trainer.cursor:]
+    assert len(remaining) == 1
+    reference = copy.deepcopy(trainer.head)
+    reference.zero_grad(set_to_none=True)
+    terms = []
+    for item in remaining:
+        row = trainer.records[item["record_index"]]
+        # Every instruction has eight fully labeled states in this fixture,
+        # so teacher's additional per-instruction weight correction is one.
+        loss = record_loss(reference, row, **{name: config[name] for name in
+            ("sr_weight", "spl_weight", "rescue_weight", "harm_weight")})
+        terms.append(loss * item["weight"])
+    (torch.stack(terms).sum() / config["batch_size"]).backward()
+    original = training.batch_record_losses
+    calls = []
+
+    def spy(model, records, **weights):
+        rows = list(records)
+        calls.append(len(rows))
+        return original(model, rows, **weights)
+
+    monkeypatch.setattr(training, "batch_record_losses", spy)
+    trainer.step()
+    assert calls == [1]
+    assert trainer.global_step == trainer.optimizer_updates == 6
+    assert trainer.pending_dev is True
+    for name, parameter in trainer.head.named_parameters():
+        expected = dict(reference.named_parameters())[name]
+        torch.testing.assert_close(parameter.grad, expected.grad, rtol=1e-4, atol=5e-6,
+                                   msg=lambda message: name + ": " + message)
 
 
 @pytest.mark.parametrize("change", ("plan", "plan_digest", "cursor", "step"))

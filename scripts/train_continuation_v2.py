@@ -21,7 +21,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 import torch
 
-from vln_improve.continuation_learning import ContinuationComparator, record_loss
+from vln_improve.continuation_learning import ContinuationComparator, batch_record_losses
 from vln_improve.continuation_v2 import SCHEMA as DATA_SCHEMA, SCHEDULES, choose_action, load_bundle
 from vln_improve.endpoint_pairs import content_hash
 from vln_improve.pipeline import (MountedCheckpointStore, atomic_json, backup_mount_identity,
@@ -376,7 +376,7 @@ class ContinuationTrainer:
             raise ValueError("empty optimizer batch")
         self.head.train()
         self.optimizer.zero_grad(set_to_none=True)
-        weighted = []
+        selected_records = []
         effective_weights = []
         for item in batch:
             record = self.records[item["record_index"]]
@@ -385,18 +385,19 @@ class ContinuationTrainer:
                 continue
             if self.head.mode == "teacher":
                 self.epoch_teacher_labeled += 1
-            loss = record_loss(self.head, record, **{name: self.config[name] for name in
-                               ("sr_weight", "spl_weight", "rescue_weight", "harm_weight")})
             weight = item["weight"]
             if self.head.mode == "teacher":
                 # Excluding missing experts must not underweight instructions
                 # which have fewer labeled states. Zero-label instructions are
                 # reported separately and cannot provide teacher supervision.
                 weight *= self.instruction_record_counts[record["instr_id"]] / self.teacher_labeled_counts[record["instr_id"]]
-            weighted.append(loss * weight)
+            selected_records.append(record)
             effective_weights.append(weight)
-        if weighted:
-            numerator = torch.stack(weighted).sum()
+        if selected_records:
+            losses = batch_record_losses(self.head, selected_records, **{
+                name: self.config[name] for name in
+                ("sr_weight", "spl_weight", "rescue_weight", "harm_weight")})
+            numerator = (losses * losses.new_tensor(effective_weights)).sum()
             # A fixed denominator preserves equal instruction weights across
             # the epoch, including the final partial batch.
             denominator = self.config["batch_size"]
