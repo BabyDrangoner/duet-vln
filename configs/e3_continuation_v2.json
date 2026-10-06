@@ -1,0 +1,96 @@
+{
+  "schema": "e3_causal_continuation_v2",
+  "seed": 0,
+  "instructions": {
+    "train_fit": 512,
+    "train_dev": 128
+  },
+  "smoke_instructions_per_split": 16,
+  "conditions": [
+    "natural",
+    "perturb_step2",
+    "early_two",
+    "late_three"
+  ],
+  "asset_pins": {
+    "base_checkpoint_sha256": "c1ed3ed27e1acbffec1fa81fbdd06e16498398809a7f80f349043ba74c21ba94",
+    "feature_sha256": "ae0ff208349e6a12096fe47c7b045e42b93e9c047da50d19dd17e04ec8d31bbc",
+    "train_annotation_sha256": "8ffdfd5a5c5efeef56af7883ebac28d854a64161f1d0a3d0e52ba75086b726b8",
+    "connectivity_sha256": "ef4a536632ad2d76b94c5b7ee41fffcc470a33844f7e7a9ca048739cdaa7d6af"
+  },
+  "target": {
+    "reference": "original frozen DUET on full R2R val_unseen",
+    "sr_gain_percentage_points_min": 5.0,
+    "spl_gain_percentage_points_min": 0.0,
+    "baseline_sr_percent": 71.51979565772669,
+    "baseline_spl_percent": 60.409849847319485,
+    "baseline_successes": 1680,
+    "episodes": 2349,
+    "target_successes_min": 1798,
+    "net_rescues_min": 118,
+    "validation_report_sha256": "32e4b21422a86c2b8a7e81eb1b423b903ac19cf25972d450c003bdd33d57cd61"
+  },
+  "data_rules": {
+    "selection": "scene_stratified",
+    "feature_dtype": "float16",
+    "max_action_len": 15,
+    "perturb_schedules": {
+      "natural": [],
+      "perturb_step2": [
+        2
+      ],
+      "early_two": [
+        1,
+        2
+      ],
+      "late_three": [
+        2,
+        4,
+        6
+      ]
+    },
+    "eligible_steps": "after all perturbations: first eligible, first+3, or raw STOP; no forced termination",
+    "candidate_rule": "baseline, top two legal nonbaseline moving actions, STOP; deduplicate",
+    "interventions_per_episode": 1,
+    "history": "past STOP-context and executed-action tokens, then current STOP-context; never current action or future states",
+    "sampling_labels": "no target-dependent perturbation/state/candidate selection",
+    "retention": "retain all instructions and conditions, including unapplied perturbations and unrecoverable failures"
+  },
+  "training_plan": {
+    "epochs": 20,
+    "candidate_epochs": [
+      5,
+      10,
+      20
+    ],
+    "sr_thresholds": [
+      0,
+      0.05,
+      0.1,
+      0.2,
+      0.4
+    ],
+    "spl_thresholds": [
+      0
+    ],
+    "arms": [
+      "relative-history",
+      "absolute-history",
+      "teacher-history",
+      "relative-nohistory",
+      "relative-olddata"
+    ],
+    "required_fit_rescue_instructions_before_formal_training": 32,
+    "required_fit_rescue_scans_before_formal_training": 12,
+    "support_threshold_scope": "engineering support gate, not a statistical power guarantee",
+    "if_support_insufficient": "one separately recorded fixed expansion to 2048 fit instructions; do not overwrite this dataset identity",
+    "validation": "freeze on train_dev first; at most one seed0 full val_unseen access per arm, all checkpoint/gates frozen before any result"
+  },
+  "storage": {
+    "backup_backend": "filesystem",
+    "backup_root": "/home/xxl/vln-backups",
+    "commit_unit": "one complete instruction-condition bundle",
+    "checksum_before_ack": true,
+    "resume_same_source_config_assets_selection": true
+  }
+}
